@@ -1,0 +1,5 @@
+obj/
+bin/
+.vscode/
+newtonsoft.json/
+derive.rb
