@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
  */
 namespace SerpApi
 {
-  public class SerpApiClient
+  public class Client
   {
     const string JSON_FORMAT = "json";
     const string HTML_FORMAT = "html";
@@ -23,9 +23,12 @@ namespace SerpApi
     public HttpClient client;
 
 
-    public SerpApiClient(Hashtable parameter)
+    public Client(Hashtable parameter = null)
     {
       // assign query parameter
+      if(parameter == null) {
+        parameter = new Hashtable();
+      }
       this.defaultParameter = parameter;
 
       // initialize clean
@@ -70,9 +73,13 @@ namespace SerpApi
     /***
    * Get user account 
    */
-    public JObject account()
+    public JObject account(string apiKey = null)
     {
-      return json("/account", new Hashtable());
+      Hashtable parameter = new Hashtable();
+      if(apiKey != null) {
+        parameter.Add("api_key", apiKey);
+      }
+      return json("/account", parameter);
     }
 
     /***
@@ -93,9 +100,9 @@ namespace SerpApi
         JObject data = JObject.Parse(buffer);
         if (data.ContainsKey("error"))
         {
-          throw new SerpApiClientException(data.GetValue("error").ToString());
+          throw new ClientException(data.GetValue("error").ToString());
         }
-        throw new SerpApiClientException("oops no error found when parsing: " + buffer);
+        throw new ClientException("oops no error found when parsing: " + buffer);
       }
     }
 
@@ -120,7 +127,7 @@ namespace SerpApi
       // report error if something went wrong
       if (data.ContainsKey("error"))
       {
-        throw new SerpApiClientException(data.GetValue("error").ToString());
+        throw new ClientException(data.GetValue("error").ToString());
       }
       return data;
     }
@@ -199,21 +206,21 @@ namespace SerpApi
         else
         {
           response.Dispose();
-          throw new SerpApiClientException("Http request fail: " + content);
+          throw new ClientException("Http request fail: " + content);
         }
       }
       catch (Exception ex)
       {
         // handle HTTP issues
-        throw new SerpApiClientException(ex.ToString());
+        throw new ClientException(ex.ToString());
       }
-      throw new SerpApiClientException("Oops something went very wrong");
+      throw new ClientException("Oops something went very wrong");
     }
   }
 
-  public class SerpApiClientException : Exception
+  public class ClientException : Exception
   {
-    public SerpApiClientException(string message) : base(message) { }
+    public ClientException(string message) : base(message) { }
   }
 
 }
