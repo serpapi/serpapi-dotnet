@@ -10,7 +10,7 @@ namespace SerpApi.Test
   [TestClass]
   public class LocationTest
   {
-    private SerpApi.Client client;
+    private SerpApi client;
     private string apiKey;
 
     public LocationTest()
@@ -21,7 +21,7 @@ namespace SerpApi.Test
     [TestMethod]
     public void TestLocation()
     {
-      client = new SerpApi.Client();
+      client = new SerpApi();
       Hashtable locationParameter = new Hashtable();
       locationParameter.Add("q", "Austin,TX");
       locationParameter.Add("limit", "5");

@@ -10,7 +10,7 @@ namespace SerpApi.Test
   [TestClass]
   public class AccountTest
   {
-    private SerpApi.Client client;
+    private SerpApi client;
     private string apiKey;
 
     public AccountTest()
@@ -18,7 +18,7 @@ namespace SerpApi.Test
       apiKey = Environment.GetEnvironmentVariable("API_KEY");
       Hashtable ht = new Hashtable();
       ht.Add("api_key", apiKey);
-      this.client = new SerpApi.Client(ht);
+      this.client = new SerpApi(ht);
     }
 
      public void TestGetAccount()

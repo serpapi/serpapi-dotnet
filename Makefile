@@ -1,12 +1,12 @@
 
 .PHONY: test
 
-name=google-search-results-dotnet
+name=serpapi
 root=`pwd`
 example=google
 
 # set default framework version
-framework_version=net5.0
+framework_version=net8.0
 
 # all
 all: clean restore build test

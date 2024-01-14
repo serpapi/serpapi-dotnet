@@ -47,7 +47,7 @@ namespace SerpApi.Test
       ht.Add("google_domain", "google.com");
       ht.Add("engine", "google");
       ht.Add("api_key", apiKey);
-      SerpApi.Client client = new SerpApi.Client(ht);
+      SerpApi client = new SerpApi(ht);
       client.defaultParameter.Remove("q");
       client.defaultParameter.Remove("location");
       client.defaultParameter.Remove("hl");
@@ -69,7 +69,7 @@ namespace SerpApi.Test
       ht.Add("q", "(h)wīt ˈkôfē !");
       ht.Add("engine", "google");
       ht.Add("api_key", apiKey);
-      SerpApi.Client client = new SerpApi.Client(ht);
+      SerpApi client = new SerpApi(ht);
       JObject data = client.search(ht);
       dynamic first = ((JArray)data["organic_results"])[0];
       Assert.AreEqual<string>((string)first["position"], "1");

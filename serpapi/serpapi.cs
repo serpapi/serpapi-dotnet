@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
  */
 namespace SerpApi
 {
-  public class Client
+  public class SerpApi
   {
     const string JSON_FORMAT = "json";
     const string HTML_FORMAT = "html";
@@ -23,7 +23,7 @@ namespace SerpApi
     public HttpClient client;
 
 
-    public Client(Hashtable parameter = null)
+    public SerpApi(Hashtable parameter = null)
     {
       // assign query parameter
       if(parameter == null) {

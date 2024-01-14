@@ -10,7 +10,7 @@ namespace SerpApi.Test
   [TestClass]
   public class GoogleSearchTest
   {
-    private SerpApi.Client client;
+    private SerpApi client;
     private Hashtable ht;
     private string apiKey;
 
@@ -27,7 +27,7 @@ namespace SerpApi.Test
     [TestMethod]
     public void TestSearch()
     {
-      client = new SerpApi.Client(ht);
+      client = new SerpApi(ht);
 
       Hashtable searchParameter = new Hashtable();
       searchParameter.Add("location", "Austin, Texas, United States");
@@ -61,7 +61,7 @@ namespace SerpApi.Test
     [TestMethod]
     public void TestHtml()
     {
-      client = new SerpApi.Client(ht);
+      client = new SerpApi(ht);
 
       Hashtable searchParameter = new Hashtable();
       searchParameter.Add("location", "Austin, Texas, United States");

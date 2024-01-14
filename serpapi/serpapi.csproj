@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- net6.0 -->
-    <TargetFrameworks>net48;netcoreapp3.1;netstandard2.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>net48;netcoreapp3.1;netstandard2.1;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
     <RootNamespace>serpapi</RootNamespace>
     <PackageId>serpapi</PackageId>
     <Version>1.0.0</Version>
@@ -11,10 +11,10 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReleaseNotes>README.md</PackageReleaseNotes>
-    <Title>Google-Search-Results</Title>
-    <PackageDescription>Search Results via SERP API. Hash, JSON, and HTML format supported for Google, Bing, Baidu, Yandex, eBay, Google Product, YouTube, Walmart and more...</PackageDescription>
+    <Title>serpapi</Title>
+    <PackageDescription>Integrate search data into your Ruby application. This library is the official wrapper for SerpApi. SerpApi supports Google, Google Maps, Google Shopping, Baidu, Yandex, Yahoo, eBay, App Stores, and more.</PackageDescription>
     <PackageTags>Search,Engine,Google,Search,Result,JSON,Scraping,Scrape,Crawl,Baidu,Bing,eBay,Walmart,Yandex,YouTube,ML,Machine,learning</PackageTags>
-    <Copyright>SerpApi LLC 2019-2022</Copyright>
+    <Copyright>SerpApi LLC 2019-2024</Copyright>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <IsPackable>true</IsPackable>
     <IsTestProject>true</IsTestProject>

@@ -10,7 +10,7 @@ namespace SerpApi.Test
   [TestClass]
   public class ArchiveSearchTest
   {
-    private SerpApi.Client client;
+    private SerpApi client;
     private Hashtable ht;
     private string apiKey;
 
@@ -33,7 +33,7 @@ namespace SerpApi.Test
         return;
       }
 
-      client = new SerpApi.Client(ht);
+      client = new SerpApi(ht);
 
       Hashtable searchParameter = new Hashtable();
       searchParameter.Add("location", "Austin, Texas, United States");
