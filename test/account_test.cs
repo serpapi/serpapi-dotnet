@@ -16,9 +16,9 @@ namespace SerpApi.Test
     public AccountTest()
     {
       apiKey = Environment.GetEnvironmentVariable("API_KEY");
-      Hashtable ht = new Hashtable();
-      ht.Add("api_key", apiKey);
-      this.client = new SerpApi(ht);
+      Hashtable auth = new Hashtable();
+      auth.Add("api_key", apiKey);
+      this.client = new SerpApi(auth);
     }
 
      public void TestGetAccount()
@@ -35,4 +35,4 @@ namespace SerpApi.Test
       Assert.AreEqual(dict["apiKey"], apiKey);
     }
   }
-  }
+}
