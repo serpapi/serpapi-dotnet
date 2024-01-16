@@ -18,12 +18,17 @@ clean:
 restore:
 	dotnet restore
 
+# build for all target framework defined in serpapi/serpapi.csproj
 build:
+	dotnet build --configuration Release --no-restore 
+
+# build for a single framework
+build_uniq:
 	dotnet build --configuration Release --no-restore --framework ${framework_version}
 
 test:
 	dotnet test test/ --configuration Release
-#	dotnet test test/ --configuration Release --filter TestSpecialCharactersEncoding  --logger "console;verbosity=detailed"
+# dotnet test test/ --configuration Release --filter GoogleProductTest.TestSearch  --logger "console;verbosity=detailed"
 
 run:
 	dotnet run
