@@ -15,8 +15,6 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ matrix.dotnet }}
-      - name: Display dotnet version
-        run: dotnet --version
       - name: test
         run: make all
         env:
