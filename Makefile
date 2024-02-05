@@ -1,38 +1,36 @@
 
+# Automate SerpApi dotnet library
+#  compilation, test and release
+#
 .PHONY: test
 
 name=serpapi
 root=`pwd`
 example=google
 
-# set default framework version
-framework_version=net8.0
-
-# all
 all: clean restore build test
 
+# clean-up previous build
 clean:
-	dotnet clean serpapi/
-	dotnet clean test/
+	dotnet clean
 
+# rebuild local state
 restore:
 	dotnet restore
 
 # build for all target framework defined in serpapi/serpapi.csproj
 build:
-	dotnet build --configuration Release --no-restore 
+	dotnet build
 
-# build for a single framework
-build_uniq:
-	dotnet build --configuration Release --no-restore --framework ${framework_version}
-
+# run test regression
 test:
-	dotnet test test/ --configuration Release
-# dotnet test test/ --configuration Release --filter GoogleProductTest.TestSearch  --logger "console;verbosity=detailed"
+	dotnet test
 
+# run a simple application
 run:
 	dotnet run
 
+# package the library
 pack:
 	dotnet pack
 
