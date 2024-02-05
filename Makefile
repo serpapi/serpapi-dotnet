@@ -12,6 +12,8 @@ all: clean restore build test
 
 # clean-up previous build
 clean:
+	rm -rf test/obj test/bin
+	rm -rf serpapi/obj serpapi/bin
 	dotnet clean
 
 # rebuild local state
@@ -20,11 +22,11 @@ restore:
 
 # build for all target framework defined in serpapi/serpapi.csproj
 build:
-	dotnet build
+	dotnet build --configuration Release
 
 # run test regression
 test:
-	dotnet test
+	dotnet test --configuration Release
 
 # run a simple application
 run:
