@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
     <RootNamespace>serpapi</RootNamespace>
     <PackageId>serpapi</PackageId>
     <Version>1.0.0</Version>
     <PackageVersion>1.0.0</PackageVersion>
     <Authors>victor@serpapi.com</Authors>
     <Company>SerpApi.LLC</Company>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReleaseNotes>README.md</PackageReleaseNotes>
@@ -19,9 +19,13 @@
     <IsTestProject>true</IsTestProject>
     <RepositoryUrl>https://github.com/serpapi/serpapi-dotnet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-        <EnableDynamicLoading>true</EnableDynamicLoading>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" PrivateAssets="All" />
+  </ItemGroup>
+    <ItemGroup>
+    <None Include="../LICENSE" Pack="true" PackagePath="" />
+    <None Include="../README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>

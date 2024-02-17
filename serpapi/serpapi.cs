@@ -22,7 +22,6 @@ namespace SerpApi
     // Core HTTP search
     public HttpClient client;
 
-
     public SerpApi(Hashtable parameter = null)
     {
       // assign query parameter
@@ -73,10 +72,10 @@ namespace SerpApi
     /***
    * Get user account 
    */
-    public JObject account(string apiKey = null)
+    public JObject account(string apiKey = "")
     {
       Hashtable parameter = new Hashtable();
-      if(apiKey != null) {
+      if(apiKey != "") {
         parameter.Add("api_key", apiKey);
       }
       return json("/account", parameter);

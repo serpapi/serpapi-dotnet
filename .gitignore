@@ -1,5 +1,7 @@
-obj/
-bin/
+serpapi/obj/
+test/obj/
+test/bin/
+serpapi/bin
 .vscode/
 newtonsoft.json/
 derive.rb
