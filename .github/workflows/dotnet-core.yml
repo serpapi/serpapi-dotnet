@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet: ['8.0.x']
+        dotnet: ['7.0.x', '8.0.x']
         #dotnet: ['6.0.x', '7.0.x', '8.0.x']
     name: test with Dotnet ${{ matrix.dotnet }} test
     steps:
@@ -17,7 +17,7 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: test
-        run: make all
+        run: dotnet test
         env:
           API_KEY: ${{secrets.API_KEY}}
           DOTNET_VERSION: ${{matrix.dotnet}}

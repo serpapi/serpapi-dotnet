@@ -21,6 +21,9 @@
     <RepositoryType>git</RepositoryType>
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" PrivateAssets="All" />
   </ItemGroup>
