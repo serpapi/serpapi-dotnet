@@ -34,7 +34,7 @@ namespace SerpApi.Test
       query.Add("engine", "google_jobs");
       query.Add("q", "coffee");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray jobs_results = (JArray)results["jobs_results"];

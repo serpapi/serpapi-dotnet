@@ -25,7 +25,7 @@ namespace SerpApi.Test
       Hashtable locationParameter = new Hashtable();
       locationParameter.Add("q", "Austin,TX");
       locationParameter.Add("limit", "5");
-      JArray locations = client.location(locationParameter);
+      JArray locations = client.Location(locationParameter);
       int counter = 0;
       foreach (JObject location in locations)
       {

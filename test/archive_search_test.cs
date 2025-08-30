@@ -41,9 +41,9 @@ namespace SerpApi.Test
       searchParameter.Add("hl", "en");
       searchParameter.Add("google_domain", "google.com");
 
-      JObject data = client.search(searchParameter);
+      JObject data = client.Search(searchParameter);
       string id = (string)((JObject)data["search_metadata"])["id"];
-      JObject archivedSearch = client.searchArchive(id);
+      JObject archivedSearch = client.SearchArchive(id);
       int expected = GetSize((JArray)data["organic_results"]);
       int actual = GetSize((JArray)archivedSearch["organic_results"]);
       Assert.IsTrue(expected == actual);

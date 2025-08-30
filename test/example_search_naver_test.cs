@@ -34,7 +34,7 @@ namespace SerpApi.Test
       query.Add("engine", "naver");
       query.Add("query", "coffee");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray ads_results = (JArray)results["ads_results"];

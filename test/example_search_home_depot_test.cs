@@ -34,7 +34,7 @@ namespace SerpApi.Test
       query.Add("engine", "home_depot");
       query.Add("q", "table");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray products = (JArray)results["products"];

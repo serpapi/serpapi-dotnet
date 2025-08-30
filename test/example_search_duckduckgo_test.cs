@@ -34,7 +34,7 @@ namespace SerpApi.Test
       query.Add("engine", "duckduckgo");
       query.Add("q", "coffee");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray organic_results = (JArray)results["organic_results"];

@@ -12,7 +12,6 @@ namespace SerpApi.Test
   {
     private SerpApi client;
     private string apiKey;
-
     public AccountTest()
     {
       apiKey = Environment.GetEnvironmentVariable("API_KEY");
@@ -28,7 +27,7 @@ namespace SerpApi.Test
       {
         return;
       }
-      JObject account = client.account();
+      JObject account = client.Account();
       Dictionary<string, string> dict = account.ToObject<Dictionary<string, string>>();
       Assert.IsNotNull(dict["account_id"]);
       Assert.IsNotNull(dict["plan_id"]);

@@ -35,7 +35,7 @@ namespace SerpApi.Test
       query.Add("q", "electrician");
       query.Add("data_cid", "6745062158417646970");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray local_ads = (JArray)results["local_ads"];

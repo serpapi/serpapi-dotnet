@@ -35,7 +35,7 @@ namespace SerpApi.Test
       searchParameter.Add("hl", "en");
       searchParameter.Add("google_domain", "google.com");
 
-      JObject data = client.search(searchParameter);
+      JObject data = client.Search(searchParameter);
       JArray coffeeShops = (JArray)data["local_results"]["places"];
       int counter = 0;
       foreach (JObject coffeeShop in coffeeShops)
@@ -68,7 +68,7 @@ namespace SerpApi.Test
       searchParameter.Add("q", "Coffee");
       searchParameter.Add("hl", "en");
       searchParameter.Add("google_domain", "google.com");
-      string htmlContent = client.html(searchParameter);
+      string htmlContent = client.Html(searchParameter);
       Assert.IsNotNull(htmlContent);
       //Console.WriteLine(htmlContent);
       Assert.IsTrue(htmlContent.Contains("</body>"));

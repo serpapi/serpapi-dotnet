@@ -34,7 +34,7 @@ namespace SerpApi.Test
       query.Add("engine", "google_autocomplete");
       query.Add("q", "coffee");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray suggestions = (JArray)results["suggestions"];

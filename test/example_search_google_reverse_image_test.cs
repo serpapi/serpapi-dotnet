@@ -34,7 +34,7 @@ namespace SerpApi.Test
       query.Add("engine", "google_reverse_image");
       query.Add("image_url", "https://i.imgur.com/5bGzZi7.jpg");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray image_sizes = (JArray)results["image_sizes"];

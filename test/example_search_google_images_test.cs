@@ -35,7 +35,7 @@ namespace SerpApi.Test
       query.Add("tbm", "isch");
       query.Add("q", "coffee");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray images_results = (JArray)results["images_results"];

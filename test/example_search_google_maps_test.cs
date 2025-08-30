@@ -36,7 +36,7 @@ namespace SerpApi.Test
       query.Add("ll", "@40.7455096,-74.0083012,15.1z");
       query.Add("type", "search");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray local_results = (JArray)results["local_results"];

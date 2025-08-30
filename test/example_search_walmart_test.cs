@@ -34,7 +34,7 @@ namespace SerpApi.Test
       query.Add("engine", "walmart");
       query.Add("query", "coffee");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray organic_results = (JArray)results["organic_results"];

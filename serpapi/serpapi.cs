@@ -34,13 +34,13 @@ namespace SerpApi
       this.client = new HttpClient();
 
       // set default timeout to 60s
-      this.setTimeoutSeconds(60);
+      this.SetTimeoutSeconds(60);
     }
 
     /***
      * Set HTTP timeout in seconds
      */
-    public void setTimeoutSeconds(int seconds)
+    public void SetTimeoutSeconds(int seconds)
     {
       this.client.Timeout = TimeSpan.FromSeconds(seconds);
     }
@@ -48,46 +48,46 @@ namespace SerpApi
     /***
      * Get Json result
      */
-    public JObject search(Hashtable parameter)
+    public JObject Search(Hashtable parameter)
     {
-      return json("/search", parameter);
+      return Json("/search", parameter);
     }
 
     /***
      * Get search archive for JSON results
      */
-    public JObject searchArchive(string searchId)
+    public JObject SearchArchive(string searchId)
     {
-      return json("/searches/" + searchId + ".json", new Hashtable());
+      return Json("/searches/" + searchId + ".json", new Hashtable());
     }
 
     /***
      * Get search HTML results
      */
-    public string html(Hashtable parameter)
+    public string Html(Hashtable parameter)
     {
-      return get("/search", parameter, false);
+      return Get("/search", parameter, false);
     }
 
     /***
    * Get user account 
    */
-    public JObject account(string apiKey = "")
+    public JObject Account(string apiKey = "")
     {
       Hashtable parameter = new Hashtable();
       if(apiKey != "") {
         parameter.Add("api_key", apiKey);
       }
-      return json("/account", parameter);
+      return Json("/account", parameter);
     }
 
     /***
     * Get location using location API 
     */
-    public JArray location(Hashtable parameter)
+    public JArray Location(Hashtable parameter)
     {
       // get json result
-      string buffer = get("/locations.json", parameter, true);
+      string buffer = Get("/locations.json", parameter, true);
       // parse json response (ignore http response status)
       try {
         JArray data = JArray.Parse(buffer);
@@ -105,11 +105,11 @@ namespace SerpApi
       }
     }
 
-    public string get(string endpoint, Hashtable parameter, bool jsonEnabled)
+    public string Get(string endpoint, Hashtable parameter, bool jsonEnabled)
     {
-      string url = createUrl(endpoint, parameter, jsonEnabled);
+      string url = CreateUrl(endpoint, parameter, jsonEnabled);
       // run asynchonous http query (.net framework implementation)
-      Task<string> queryTask = createQuery(url, jsonEnabled);
+      Task<string> queryTask = CreateQuery(url, jsonEnabled);
       // block until http query is completed
       queryTask.ConfigureAwait(true);
       // parse result into json
@@ -117,10 +117,10 @@ namespace SerpApi
     }
 
 
-    public JObject json(string uri, Hashtable parameter)
+    public JObject Json(string uri, Hashtable parameter)
     {
       // get json result
-      string buffer = get(uri, parameter, true);
+      string buffer = Get(uri, parameter, true);
       // parse json response (ignore http response status)
       JObject data = JObject.Parse(buffer);
       // report error if something went wrong
@@ -137,7 +137,7 @@ namespace SerpApi
     //  - C# URL encoding is pretty buggy and the API provides method which are not functional.
     //  - System.Web.HttpUtility.UrlEncode breaks if apply the full URL
     ///
-    public string createUrl(string endpoint, Hashtable parameter, bool jsonEnabled)
+    public string CreateUrl(string endpoint, Hashtable parameter, bool jsonEnabled)
     {
       // merge parameter
       Hashtable table = new Hashtable();
@@ -182,7 +182,7 @@ namespace SerpApi
       this.client.Dispose();
     }
 
-    private async Task<string> createQuery(string url, bool jsonEnabled)
+    private async Task<string> CreateQuery(string url, bool jsonEnabled)
     {
       // display url for debug: 
       //Console.WriteLine("url: " + url);
@@ -213,7 +213,7 @@ namespace SerpApi
         // handle HTTP issues
         throw new ClientException(ex.ToString());
       }
-      throw new ClientException("Oops something went very wrong");
+      //throw new ClientException("Oops something went very wrong");
     }
   }
 

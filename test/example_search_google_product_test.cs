@@ -35,7 +35,7 @@ namespace SerpApi.Test
       query.Add("q", "coffee");
       query.Add("product_id", "4887235756540435899");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       //Console.WriteLine(results);

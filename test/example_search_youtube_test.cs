@@ -34,7 +34,7 @@ namespace SerpApi.Test
       query.Add("engine", "youtube");
       query.Add("search_query", "coffee");
 
-      JObject results = client.search(query);
+      JObject results = client.Search(query);
       Assert.IsNotNull(results);
 
       JArray video_results = (JArray)results["video_results"];
