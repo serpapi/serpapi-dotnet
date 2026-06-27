@@ -1,56 +1,20 @@
 
-# Automate SerpApi dotnet library
-#  compilation, test and release
-#
-.PHONY: test
-
-name=serpapi
-root=`pwd`
-example=google
+.PHONY: all clean restore build test pack
 
 all: clean restore build test
 
-# clean-up previous build
 clean:
-	rm -rf test/obj test/bin
-	rm -rf serpapi/obj serpapi/bin
-	dotnet clean
+	dotnet clean --verbosity quiet
+	rm -rf serpapi/bin serpapi/obj test/bin test/obj
 
-# rebuild local state
 restore:
 	dotnet restore
 
-# build for all target framework defined in serpapi/serpapi.csproj
 build:
-	dotnet build --configuration Release
+	dotnet build --configuration Release --no-restore
 
-# run test regression
 test:
-	dotnet test --configuration Release
+	dotnet test --configuration Release --no-build
 
-# run a simple application
-run:
-	dotnet run
-
-# package the library
 pack:
-	dotnet pack
-
-oobt: pack
-	$(MAKE) run_oobt example=google
-	$(MAKE) run_oobt example=bing
-
-run_oobt:
-	cd example/${example} ; \
-	dotnet add package --package-directory ${root}/${name} ${name} ; \
-	dotnet build ; \
-	dotnet run
-
-# Dotnet
-#
-# https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package-using-the-dotnet-cli
-#
-# Package API
-release: oobt
-	open serpapi/bin/Debug
-	open -a "Google\ Chrome" https://www.nuget.org/packages/manage/upload
+	dotnet pack --configuration Release --no-build

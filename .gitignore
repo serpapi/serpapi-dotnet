@@ -1,7 +1,18 @@
-serpapi/obj/
-test/obj/
-test/bin/
-serpapi/bin
+## .NET
+bin/
+obj/
+*.nupkg
+*.snupkg
+
+## IDE
+.vs/
 .vscode/
+*.user
+*.suo
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Build artifacts
 newtonsoft.json/
-derive.rb

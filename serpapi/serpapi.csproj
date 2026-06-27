@@ -1,34 +1,41 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>serpapi</RootNamespace>
+    <TargetFrameworks>net7.0;net9.0</TargetFrameworks>
+    <RootNamespace>SerpApi</RootNamespace>
     <PackageId>serpapi</PackageId>
-    <Version>1.0.0</Version>
-    <PackageVersion>1.0.0</PackageVersion>
-    <Authors>victor@serpapi.com</Authors>
-    <Company>SerpApi.LLC</Company>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.0.0</Version>
+    <Authors>SerpApi</Authors>
+    <Company>SerpApi LLC</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>README.md</PackageReleaseNotes>
-    <Title>serpapi</Title>
-    <PackageDescription>Integrate search data into your Ruby application. This library is the official wrapper for SerpApi. SerpApi supports Google, Google Maps, Google Shopping, Baidu, Yandex, Yahoo, eBay, App Stores, and more.</PackageDescription>
-    <PackageTags>Search,Engine,Google,Search,Result,JSON,Scraping,Scrape,Crawl,Baidu,Bing,eBay,Walmart,Yandex,YouTube,ML,Machine,learning</PackageTags>
-    <Copyright>SerpApi LLC 2019-2024</Copyright>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <IsPackable>true</IsPackable>
-    <IsTestProject>true</IsTestProject>
+    <Title>SerpApi</Title>
+    <PackageDescription>Official .NET client for SerpApi — scrape and parse search engine results. Supports Google, Bing, Baidu, Yandex, Yahoo, DuckDuckGo, eBay, Walmart, YouTube, and 100+ engines.</PackageDescription>
+    <PackageTags>SerpApi;Search;Google;Bing;SERP;Scraping;API;SEO;Baidu;Yandex;DuckDuckGo;YouTube;eBay;Walmart</PackageTags>
+    <Copyright>SerpApi LLC 2019-2026</Copyright>
     <RepositoryUrl>https://github.com/serpapi/serpapi-dotnet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <IsPackable>true</IsPackable>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="test" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
   </ItemGroup>
-    <ItemGroup>
+  <ItemGroup>
     <None Include="../LICENSE" Pack="true" PackagePath="" />
-    <None Include="../README.md" Pack="true" PackagePath=""/>
+    <None Include="../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>
