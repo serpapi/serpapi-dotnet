@@ -402,6 +402,30 @@ builder.Services.AddSerpApi(options =>
 
 Uses `IHttpClientFactory` for connection management.
 
+#### Retry with Polly
+
+```csharp
+builder.Services.AddSerpApi(options =>
+{
+    options.ApiKey = builder.Configuration["SerpApi:ApiKey"]!;
+})
+.AddTransientHttpErrorPolicy(p =>
+    p.WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))));
+```
+
+#### Corporate proxy
+
+```csharp
+var handler = new HttpClientHandler
+{
+    Proxy = new WebProxy("http://proxy.corp.example:8080"),
+    UseProxy = true
+};
+using var client = new SerpApiClient(
+    new HttpClient(handler),
+    new SerpApiClientOptions { ApiKey = "YOUR_API_KEY" });
+```
+
 ## Examples
 
 See [`examples/`](examples/) for runnable projects:
