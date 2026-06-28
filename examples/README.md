@@ -27,4 +27,5 @@ dotnet run
 | [MultipleEngines](MultipleEngines/) | Google, Bing, YouTube, Google Maps |
 | [ErrorHandling](ErrorHandling/) | Exception types and retry pattern |
 | [DependencyInjection](DependencyInjection/) | ASP.NET Core / generic host setup |
-| [ResearchFanOut](ResearchFanOut/) | Multi-engine parallel research, progressive refinement, verification loop |
+| [ResearchFanOut](ResearchFanOut/) | Multi-engine parallel research with safe disposal and partial failure |
+| [ProgressiveRefinement](ProgressiveRefinement/) | Narrow → broad → time-filtered query refinement |

@@ -55,7 +55,12 @@ public sealed class SerpApiClient : IDisposable
             throw new SerpApiKeyException("API key must not be empty. Get one at https://serpapi.com/manage-api-key");
 
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _options = options;
+        _options = new SerpApiClientOptions
+        {
+            ApiKey = options.ApiKey,
+            BaseUrl = options.BaseUrl,
+            Timeout = options.Timeout
+        };
         _ownsHttpClient = false;
     }
 
@@ -72,8 +77,16 @@ public sealed class SerpApiClient : IDisposable
         var url = BuildUrl("/search", parameters, outputJson: true);
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
         var response = new SerpApiResponse(json);
-        ThrowIfError(response);
-        return response;
+        try
+        {
+            ThrowIfError(response);
+            return response;
+        }
+        catch
+        {
+            response.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -99,11 +112,19 @@ public sealed class SerpApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(searchId))
             throw new ArgumentException("searchId must not be empty.", nameof(searchId));
 
-        var url = BuildUrl($"/searches/{searchId}.json", new Dictionary<string, string>(), outputJson: true);
+        var url = BuildUrl($"/searches/{Uri.EscapeDataString(searchId)}.json", new Dictionary<string, string>(), outputJson: true);
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
         var response = new SerpApiResponse(json);
-        ThrowIfError(response);
-        return response;
+        try
+        {
+            ThrowIfError(response);
+            return response;
+        }
+        catch
+        {
+            response.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -113,7 +134,17 @@ public sealed class SerpApiClient : IDisposable
     {
         var url = BuildUrl("/account", new Dictionary<string, string>(), outputJson: true);
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        return new SerpApiResponse(json);
+        var response = new SerpApiResponse(json);
+        try
+        {
+            ThrowIfError(response);
+            return response;
+        }
+        catch
+        {
+            response.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -161,17 +192,43 @@ public sealed class SerpApiClient : IDisposable
         if (string.IsNullOrEmpty(nextUrl))
             return null;
 
-        // The next URL from SerpApi is absolute; append api_key and source
-        var separator = nextUrl.Contains('?') ? "&" : "?";
-        var url = $"{nextUrl}{separator}api_key={Uri.EscapeDataString(_options.ApiKey!)}&source={DefaultSource}";
+        return await FetchPageByUrlAsync(nextUrl, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<SerpApiResponse> FetchPageByUrlAsync(
+        string pageUrl,
+        CancellationToken cancellationToken)
+    {
+        // Validate URL origin to prevent SSRF / API key exfiltration
+        if (!Uri.TryCreate(pageUrl, UriKind.Absolute, out var parsedUri))
+            throw new SerpApiException($"Invalid pagination URL: {pageUrl}");
+
+        var expectedHost = new Uri(_options.BaseUrl).Host;
+        if (!string.Equals(parsedUri.Host, expectedHost, StringComparison.OrdinalIgnoreCase))
+            throw new SerpApiException($"Pagination URL host '{parsedUri.Host}' does not match expected '{expectedHost}'.");
+
+        if (parsedUri.Scheme != "https" && parsedUri.Scheme != "http")
+            throw new SerpApiException($"Pagination URL must use HTTP(S), got '{parsedUri.Scheme}'.");
+
+        var separator = pageUrl.Contains('?') ? "&" : "?";
+        var url = $"{pageUrl}{separator}api_key={Uri.EscapeDataString(_options.ApiKey!)}&source={DefaultSource}";
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
         var result = new SerpApiResponse(json);
-        ThrowIfError(result);
-        return result;
+        try
+        {
+            ThrowIfError(result);
+            return result;
+        }
+        catch
+        {
+            result.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
     /// Enumerate all pages of search results as an async stream.
+    /// Caller owns each yielded response and should dispose it.
     /// </summary>
     /// <param name="parameters">Search parameters.</param>
     /// <param name="maxPages">Maximum number of pages to retrieve.</param>
@@ -181,16 +238,22 @@ public sealed class SerpApiClient : IDisposable
         int maxPages = 100,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        if (maxPages <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxPages), "maxPages must be at least 1.");
+
         var current = await SearchAsync(parameters, cancellationToken).ConfigureAwait(false);
+        var nextUrl = current.NextPageUrl;
         yield return current;
 
         for (int i = 1; i < maxPages; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var next = await NextPageAsync(current, cancellationToken).ConfigureAwait(false);
-            if (next == null)
+
+            if (string.IsNullOrEmpty(nextUrl))
                 yield break;
-            current = next;
+
+            current = await FetchPageByUrlAsync(nextUrl, cancellationToken).ConfigureAwait(false);
+            nextUrl = current.NextPageUrl;
             yield return current;
         }
     }
@@ -262,7 +325,7 @@ public sealed class SerpApiClient : IDisposable
     {
         try
         {
-            var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            using var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
             var content = await response.Content.ReadAsStringAsync(
 #if NET7_0_OR_GREATER
@@ -272,7 +335,6 @@ public sealed class SerpApiClient : IDisposable
 
             if (!response.IsSuccessStatusCode)
             {
-                // Try to extract error message from JSON
                 string errorMessage = content;
                 try
                 {

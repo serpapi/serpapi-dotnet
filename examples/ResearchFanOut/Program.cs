@@ -1,3 +1,7 @@
+// Research Fan-Out: one question → multiple engines in parallel.
+// Demonstrates: Task.WhenAll, safe disposal, partial failure handling.
+// Runs 4 API calls concurrently.
+
 using SerpApi;
 using System.Text.Json;
 
@@ -5,122 +9,80 @@ var apiKey = args.Length > 0 ? args[0] : Environment.GetEnvironmentVariable("SER
 if (string.IsNullOrEmpty(apiKey))
 {
     Console.WriteLine("Usage: dotnet run -- <API_KEY>");
+    Console.WriteLine("   or: SERPAPI_KEY=... dotnet run");
     return;
 }
 
 using var client = new SerpApiClient(apiKey);
-var topic = "Apple AAPL stock";
+var query = args.Length > 1 ? args[1] : "coffee brewing methods";
 
-// === Research Fan-Out ===
-// Query multiple engines in parallel — the core pattern for AI agent research.
-// One user question → multiple surfaces queried concurrently.
-Console.WriteLine($"Researching: {topic}\n");
+Console.WriteLine($"Researching: {query}\n");
 
-var tasks = new[]
+// Fan-out: same topic, different engines, all in parallel.
+var tasks = new (string Name, Task<SerpApiResponse> Call)[]
 {
-    client.SearchAsync(new Dictionary<string, string>
+    ("Web", client.SearchAsync(new Dictionary<string, string>
     {
         ["engine"] = "google_light",
-        ["q"] = "AAPL analyst consensus 2026",
-        ["num"] = "10"
-    }),
-    client.SearchAsync(new Dictionary<string, string>
+        ["q"] = query
+    })),
+    ("News", client.SearchAsync(new Dictionary<string, string>
     {
         ["engine"] = "google_news_light",
-        ["q"] = "Apple earnings revenue"
-    }),
-    client.SearchAsync(new Dictionary<string, string>
+        ["q"] = query
+    })),
+    ("Scholar", client.SearchAsync(new Dictionary<string, string>
     {
-        ["engine"] = "google_finance",
-        ["q"] = "AAPL:NASDAQ"
-    })
-};
-
-var results = await Task.WhenAll(tasks);
-
-Console.WriteLine("=== Web Results (google_light) ===");
-if (results[0].OrganicResults is { } web)
-{
-    foreach (var r in web.EnumerateArray().Take(3))
-        Console.WriteLine($"  • {r.GetProperty("title").GetString()}");
-}
-
-Console.WriteLine("\n=== News (google_news_light) ===");
-var news = results[1]["news_results"];
-if (news is { } newsArr)
-{
-    foreach (var r in newsArr.EnumerateArray().Take(3))
-        Console.WriteLine($"  • {r.GetProperty("title").GetString()}");
-}
-
-Console.WriteLine("\n=== Finance (google_finance) ===");
-var summary = results[2]["summary"];
-if (summary is { } s)
-{
-    var props = new[] { "price", "currency", "previous_close" };
-    foreach (var prop in props)
-    {
-        if (s.TryGetProperty(prop, out var val))
-            Console.WriteLine($"  {prop}: {val}");
-    }
-}
-
-foreach (var r in results) r.Dispose();
-
-// === Progressive Refinement ===
-// Start narrow, broaden on empty results.
-Console.WriteLine("\n=== Progressive Refinement ===");
-
-using var narrow = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_light",
-    ["q"] = "\"AAPL Q2 2026 earnings beat\"",
-    ["num"] = "5"
-});
-
-var narrowCount = narrow.OrganicResults?.GetArrayLength() ?? 0;
-Console.WriteLine($"  Exact phrase: {narrowCount} results");
-
-if (narrowCount == 0)
-{
-    Console.WriteLine("  → Broadening query...");
-    using var broad = await client.SearchAsync(new Dictionary<string, string>
-    {
-        ["engine"] = "google_light",
-        ["q"] = "AAPL Q2 2026 earnings",
-        ["num"] = "10"
-    });
-    Console.WriteLine($"  Broad query: {broad.OrganicResults?.GetArrayLength() ?? 0} results");
-}
-
-// === Verification Loop ===
-// Cross-reference a claim across independent engines.
-Console.WriteLine("\n=== Verification Loop ===");
-var claim = "Apple revenue exceeded $100 billion";
-
-var verifyTasks = new[]
-{
-    client.SearchAsync(new Dictionary<string, string>
-    {
-        ["engine"] = "google_light",
-        ["q"] = claim,
-        ["num"] = "3"
-    }),
-    client.SearchAsync(new Dictionary<string, string>
+        ["engine"] = "google_scholar",
+        ["q"] = query
+    })),
+    ("Bing", client.SearchAsync(new Dictionary<string, string>
     {
         ["engine"] = "bing",
-        ["q"] = claim,
-        ["count"] = "3"
-    })
+        ["q"] = query
+    }))
 };
 
-var verifyResults = await Task.WhenAll(verifyTasks);
+// Await all — handle partial failures gracefully.
+await Task.WhenAll(tasks.Select(t => t.Call));
 
-var googleHits = verifyResults[0].OrganicResults?.GetArrayLength() ?? 0;
-var bingHits = verifyResults[1].OrganicResults?.GetArrayLength() ?? 0;
+try
+{
+    foreach (var (name, call) in tasks)
+    {
+        if (call.IsFaulted)
+        {
+            Console.WriteLine($"=== {name}: FAILED ({call.Exception?.InnerException?.Message}) ===\n");
+            continue;
+        }
 
-Console.WriteLine($"  Google: {googleHits} results");
-Console.WriteLine($"  Bing:   {bingHits} results");
-Console.WriteLine($"  Confidence: {(googleHits > 0 && bingHits > 0 ? "HIGH" : "LOW — needs manual review")}");
+        var response = call.Result;
+        var results = response.OrganicResults
+            ?? response["news_results"];
 
-foreach (var r in verifyResults) r.Dispose();
+        if (results is not { } arr)
+        {
+            Console.WriteLine($"=== {name}: no results ===\n");
+            continue;
+        }
+
+        Console.WriteLine($"=== {name} ({arr.GetArrayLength()} results) ===");
+        foreach (var r in arr.EnumerateArray().Take(3))
+        {
+            var title = r.TryGetProperty("title", out var t) ? t.GetString() : "(no title)";
+            var link = r.TryGetProperty("link", out var l) ? l.GetString() : "";
+            Console.WriteLine($"  • {title}");
+            if (!string.IsNullOrEmpty(link))
+                Console.WriteLine($"    {link}");
+        }
+        Console.WriteLine();
+    }
+}
+finally
+{
+    foreach (var (_, call) in tasks)
+    {
+        if (call.IsCompletedSuccessfully)
+            call.Result.Dispose();
+    }
+}

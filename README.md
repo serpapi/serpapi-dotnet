@@ -46,7 +46,7 @@ foreach (var result in results.OrganicResults!.Value.EnumerateArray())
 ```csharp
 try
 {
-    using var results = await client.SearchAsync(params);
+    using var results = await client.SearchAsync(parameters);
 }
 catch (SerpApiKeyException)       { /* 401 — invalid API key */ }
 catch (SerpApiHttpException ex)   { /* 429, 500, etc — ex.StatusCode */ }
@@ -88,7 +88,7 @@ string html = await client.HtmlAsync(new Dictionary<string, string>
 using var page2 = await client.NextPageAsync(results);
 
 // Iterate all pages as an async stream
-await foreach (var page in client.SearchPagesAsync(params, maxPages: 5))
+await foreach (var page in client.SearchPagesAsync(parameters, maxPages: 5))
 {
     Console.WriteLine($"Page has {page.OrganicResults?.GetArrayLength()} results");
 }
@@ -415,6 +415,7 @@ See [`examples/`](examples/) for runnable projects:
 | [ErrorHandling](examples/ErrorHandling/) | Exception types and retry |
 | [DependencyInjection](examples/DependencyInjection/) | ASP.NET Core / generic host |
 | [ResearchFanOut](examples/ResearchFanOut/) | Multi-engine parallel research |
+| [ProgressiveRefinement](examples/ProgressiveRefinement/) | Narrow → broad query refinement |
 
 ```bash
 export SERPAPI_KEY=your_key_here
