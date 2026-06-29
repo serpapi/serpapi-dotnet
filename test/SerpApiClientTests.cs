@@ -518,4 +518,294 @@ public class SerpApiClientTests
         // Client should still use original values (verified indirectly via construction succeeding)
         Assert.NotNull(client);
     }
+
+    // --- Cancellation ---
+
+    [Fact]
+    public async Task SearchAsync_RespectsCancellationToken()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var handler = new MockHttpHandler((_, ct) =>
+        {
+            ct.ThrowIfCancellationRequested();
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""{"search_metadata":{"id":"x"}}""")
+            });
+        });
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            client.SearchAsync(new Dictionary<string, string>
+            {
+                ["engine"] = "google",
+                ["q"] = "test"
+            }, cts.Token));
+    }
+
+    [Fact]
+    public async Task SearchPagesAsync_RespectsCancellation()
+    {
+        var callCount = 0;
+        var handler = new MockHttpHandler((_, _) =>
+        {
+            callCount++;
+            var json = """{"search_metadata":{"id":"x"},"organic_results":[],"serpapi_pagination":{"next":"https://serpapi.com/search?start=10"}}""";
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(json)
+            });
+        });
+
+        using var cts = new CancellationTokenSource();
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var pages = new List<SerpApiResponse>();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        {
+            await foreach (var page in client.SearchPagesAsync(
+                new Dictionary<string, string> { ["engine"] = "google", ["q"] = "test" },
+                maxPages: 10,
+                cancellationToken: cts.Token))
+            {
+                pages.Add(page);
+                if (pages.Count == 2)
+                    cts.Cancel();
+            }
+        });
+
+        Assert.True(pages.Count >= 2);
+    }
+
+    // --- SearchPagesAsync iteration ---
+
+    [Fact]
+    public async Task SearchPagesAsync_StopsWhenNoPagination()
+    {
+        var callCount = 0;
+        var handler = new MockHttpHandler((_, _) =>
+        {
+            callCount++;
+            var hasNext = callCount < 3;
+            var json = hasNext
+                ? """{"search_metadata":{"id":"x"},"organic_results":[],"serpapi_pagination":{"next":"https://serpapi.com/search?start=10"}}"""
+                : """{"search_metadata":{"id":"x"},"organic_results":[]}""";
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(json)
+            });
+        });
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var pages = new List<SerpApiResponse>();
+        await foreach (var page in client.SearchPagesAsync(
+            new Dictionary<string, string> { ["engine"] = "google", ["q"] = "test" },
+            maxPages: 10))
+        {
+            pages.Add(page);
+        }
+
+        Assert.Equal(3, pages.Count);
+    }
+
+    [Fact]
+    public async Task SearchPagesAsync_StopsAtMaxPages()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+        {
+            var json = """{"search_metadata":{"id":"x"},"organic_results":[],"serpapi_pagination":{"next":"https://serpapi.com/search?start=10"}}""";
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(json)
+            });
+        });
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var pages = new List<SerpApiResponse>();
+        await foreach (var page in client.SearchPagesAsync(
+            new Dictionary<string, string> { ["engine"] = "google", ["q"] = "test" },
+            maxPages: 3))
+        {
+            pages.Add(page);
+        }
+
+        Assert.Equal(3, pages.Count);
+    }
+
+    // --- Sync wrappers ---
+
+    [Fact]
+    public void Html_SyncWorks()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html><body>results</body></html>")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var result = client.Html(new Dictionary<string, string>
+        {
+            ["engine"] = "google",
+            ["q"] = "test"
+        });
+
+        Assert.Contains("</body>", result);
+    }
+
+    [Fact]
+    public void SearchArchive_SyncWorks()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""{"search_metadata":{"id":"archived"}}""")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var result = client.SearchArchive("abc123");
+        Assert.Equal("archived", result.SearchId);
+    }
+
+    [Fact]
+    public void Account_SyncWorks()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""{"account_id":"123","api_key":"key"}""")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var result = client.Account();
+        Assert.Equal("123", result["account_id"]!.Value.GetString());
+    }
+
+    [Fact]
+    public void Location_SyncWorks()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""[{"id":"1","name":"Austin, TX"}]""")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var result = client.Location("Austin", limit: 3);
+        Assert.Equal(JsonValueKind.Array, result.ValueKind);
+        Assert.Equal(1, result.GetArrayLength());
+    }
+
+    // --- HttpRequestException wrapping ---
+
+    [Fact]
+    public async Task SearchAsync_WrapsHttpRequestException()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            throw new HttpRequestException("DNS resolution failed"));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var ex = await Assert.ThrowsAsync<SerpApiException>(() =>
+            client.SearchAsync(new Dictionary<string, string>
+            {
+                ["engine"] = "google",
+                ["q"] = "test"
+            }));
+
+        Assert.Contains("DNS resolution failed", ex.Message);
+        Assert.IsType<HttpRequestException>(ex.InnerException);
+    }
+
+    // --- Non-JSON error response ---
+
+    [Fact]
+    public async Task SearchAsync_HandlesNonJsonErrorBody()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
+            {
+                Content = new StringContent("<html>502 Bad Gateway</html>")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var ex = await Assert.ThrowsAsync<SerpApiHttpException>(() =>
+            client.SearchAsync(new Dictionary<string, string>
+            {
+                ["engine"] = "google",
+                ["q"] = "test"
+            }));
+
+        Assert.Equal(502, ex.StatusCode);
+        Assert.Contains("502 Bad Gateway", ex.Message);
+    }
+
+    // --- Non-API-key error from response body ---
+
+    [Fact]
+    public async Task SearchAsync_ThrowsGenericExceptionOnNonKeyError()
+    {
+        var json = """{"error": "Google hasn't returned any results for this query."}""";
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(json)
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var ex = await Assert.ThrowsAsync<SerpApiException>(() =>
+            client.SearchAsync(new Dictionary<string, string>
+            {
+                ["engine"] = "google",
+                ["q"] = "xyznonexistent123"
+            }));
+
+        Assert.IsNotType<SerpApiKeyException>(ex);
+        Assert.Contains("Google hasn't returned", ex.Message);
+    }
+
+    // --- Dispose safety ---
+
+    [Fact]
+    public void Dispose_WithOwnedClient_DisposesHttpClient()
+    {
+        var client = new SerpApiClient("key");
+        var ex = Record.Exception(() => client.Dispose());
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void Dispose_WithExternalClient_DoesNotDisposeHttpClient()
+    {
+        var httpClient = new HttpClient();
+        var client = new SerpApiClient(httpClient, new SerpApiClientOptions { ApiKey = "key" });
+        client.Dispose();
+
+        // httpClient should still be usable (not disposed)
+        var ex = Record.Exception(() => _ = httpClient.Timeout);
+        Assert.Null(ex);
+        httpClient.Dispose();
+    }
 }

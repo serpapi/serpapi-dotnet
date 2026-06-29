@@ -99,4 +99,35 @@ public class SerpApiResponseTests
         var response = new SerpApiResponse(json);
         Assert.Equal(json, response.ToString());
     }
+
+    [Fact]
+    public void SearchId_NullWhenNoMetadata()
+    {
+        var response = new SerpApiResponse("""{"organic_results":[]}""");
+        Assert.Null(response.SearchId);
+    }
+
+    [Fact]
+    public void SearchMetadata_NullWhenMissing()
+    {
+        var response = new SerpApiResponse("""{"organic_results":[]}""");
+        Assert.Null(response.SearchMetadata);
+    }
+
+    [Fact]
+    public void GetProperty_ReturnsDefaultForMissingKey()
+    {
+        var response = new SerpApiResponse("""{"search_metadata":{"id":"x"}}""");
+        var result = response.GetProperty<List<string>>("nonexistent");
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void DisposeMultipleTimes_DoesNotThrow()
+    {
+        var response = new SerpApiResponse("""{"a":"b"}""");
+        response.Dispose();
+        var ex = Record.Exception(() => response.Dispose());
+        Assert.Null(ex);
+    }
 }
