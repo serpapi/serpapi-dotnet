@@ -47,7 +47,8 @@ public class IntegrationFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY");
+        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY")
+            ?? Environment.GetEnvironmentVariable("API_KEY");
         if (string.IsNullOrEmpty(apiKey)) return;
 
         Client = new SerpApiClient(apiKey);
@@ -344,7 +345,8 @@ public class HtmlIntegrationTest
     [SkippableFact]
     public async Task Google_HtmlEndpoint_ReturnsHtml()
     {
-        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY");
+        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY")
+            ?? Environment.GetEnvironmentVariable("API_KEY");
         Skip.If(string.IsNullOrEmpty(apiKey), "SERPAPI_API_KEY not set");
 
         using var client = new SerpApiClient(apiKey!);
@@ -366,7 +368,8 @@ public class PaginationNextPageTest
     [SkippableFact]
     public async Task Pagination_NextPageWorks()
     {
-        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY");
+        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY")
+            ?? Environment.GetEnvironmentVariable("API_KEY");
         Skip.If(string.IsNullOrEmpty(apiKey), "SERPAPI_API_KEY not set");
 
         using var client = new SerpApiClient(apiKey!);
@@ -393,7 +396,8 @@ public class PaginationIteratorTest
     [SkippableFact]
     public async Task SearchPagesAsync_IteratesMultiplePages()
     {
-        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY");
+        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY")
+            ?? Environment.GetEnvironmentVariable("API_KEY");
         Skip.If(string.IsNullOrEmpty(apiKey), "SERPAPI_API_KEY not set");
 
         using var client = new SerpApiClient(apiKey!);
@@ -423,7 +427,8 @@ public class LocationIntegrationTest
     [SkippableFact]
     public async Task Location_ReturnsResults()
     {
-        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY");
+        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY")
+            ?? Environment.GetEnvironmentVariable("API_KEY");
         Skip.If(string.IsNullOrEmpty(apiKey), "SERPAPI_API_KEY not set");
 
         using var client = new SerpApiClient(apiKey!);
@@ -444,7 +449,8 @@ public class AccountIntegrationTest
     [SkippableFact]
     public async Task Account_ReturnsAccountInfo()
     {
-        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY");
+        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_API_KEY")
+            ?? Environment.GetEnvironmentVariable("API_KEY");
         Skip.If(string.IsNullOrEmpty(apiKey), "SERPAPI_API_KEY not set");
 
         using var client = new SerpApiClient(apiKey!);

@@ -259,36 +259,38 @@ public sealed class SerpApiClient : IDisposable
     }
 
     // --- Synchronous convenience wrappers ---
+    // NOTE: Safe in console apps and ASP.NET Core. May deadlock in legacy
+    // frameworks with a SynchronizationContext (WinForms, WPF, ASP.NET 4.x).
 
     /// <summary>
     /// Execute a search synchronously. Prefer <see cref="SearchAsync"/> for non-blocking usage.
     /// </summary>
     public SerpApiResponse Search(Dictionary<string, string> parameters)
-        => SearchAsync(parameters).GetAwaiter().GetResult();
+        => Task.Run(() => SearchAsync(parameters)).GetAwaiter().GetResult();
 
     /// <summary>
     /// Get HTML results synchronously.
     /// </summary>
     public string Html(Dictionary<string, string> parameters)
-        => HtmlAsync(parameters).GetAwaiter().GetResult();
+        => Task.Run(() => HtmlAsync(parameters)).GetAwaiter().GetResult();
 
     /// <summary>
     /// Get search archive synchronously.
     /// </summary>
     public SerpApiResponse SearchArchive(string searchId)
-        => SearchArchiveAsync(searchId).GetAwaiter().GetResult();
+        => Task.Run(() => SearchArchiveAsync(searchId)).GetAwaiter().GetResult();
 
     /// <summary>
     /// Get account info synchronously.
     /// </summary>
     public SerpApiResponse Account()
-        => AccountAsync().GetAwaiter().GetResult();
+        => Task.Run(() => AccountAsync()).GetAwaiter().GetResult();
 
     /// <summary>
     /// Get locations synchronously.
     /// </summary>
     public JsonElement Location(string query, int limit = 5)
-        => LocationAsync(query, limit).GetAwaiter().GetResult();
+        => Task.Run(() => LocationAsync(query, limit)).GetAwaiter().GetResult();
 
     // --- Private helpers ---
 
@@ -331,6 +333,7 @@ public sealed class SerpApiClient : IDisposable
 #if NET7_0_OR_GREATER
                 cancellationToken
 #endif
+            // netstandard2.0: ReadAsStringAsync has no CancellationToken overload
             ).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
@@ -366,8 +369,8 @@ public sealed class SerpApiClient : IDisposable
         if (error != null && error.Value.ValueKind == JsonValueKind.String)
         {
             var message = error.Value.GetString()!;
-            if (message.Contains("API key", StringComparison.OrdinalIgnoreCase) ||
-                message.Contains("Invalid API", StringComparison.OrdinalIgnoreCase))
+            if (message.IndexOf("API key", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                message.IndexOf("Invalid API", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 throw new SerpApiKeyException(message);
             }

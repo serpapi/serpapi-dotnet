@@ -56,7 +56,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Pack
-        run: dotnet pack --configuration Release
+        run: dotnet pack serpapi/serpapi.csproj --configuration Release
 
       - name: Upload package
         uses: actions/upload-artifact@v7
