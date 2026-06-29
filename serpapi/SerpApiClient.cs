@@ -192,7 +192,7 @@ public sealed class SerpApiClient : IDisposable
         if (string.IsNullOrEmpty(nextUrl))
             return null;
 
-        return await FetchPageByUrlAsync(nextUrl, cancellationToken).ConfigureAwait(false);
+        return await FetchPageByUrlAsync(nextUrl!, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<SerpApiResponse> FetchPageByUrlAsync(
@@ -252,7 +252,7 @@ public sealed class SerpApiClient : IDisposable
             if (string.IsNullOrEmpty(nextUrl))
                 yield break;
 
-            current = await FetchPageByUrlAsync(nextUrl, cancellationToken).ConfigureAwait(false);
+            current = await FetchPageByUrlAsync(nextUrl!, cancellationToken).ConfigureAwait(false);
             nextUrl = current.NextPageUrl;
             yield return current;
         }

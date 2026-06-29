@@ -13,7 +13,7 @@ SerpApi supports Google, Google Maps, Google Shopping, Bing, Baidu, Yandex, Yaho
 - Sync convenience wrappers
 - `IAsyncEnumerable` pagination
 - Dependency injection integration (`IHttpClientFactory`)
-- Targets .NET 7, 8, 9, and 10
+- Targets .NET Standard 2.0, .NET 7, 8, 9, and 10
 - Zero external runtime dependencies
 
 ## Installation
