@@ -1,31 +1,30 @@
 # Examples
 
-Self-contained examples for the SerpApi .NET SDK. Each folder is a standalone console app.
+Real-world use case examples for the SerpApi .NET SDK.
+
+## Use Cases
+
+| Example | Use Case | Engines Used | API Calls |
+|---------|----------|-------------|-----------|
+| [LeadFinder](LeadFinder/) | Lead generation | Google Maps | 1 |
+| [CompetitorTracker](CompetitorTracker/) | SEO & competitive intel | Google Light, Bing | 2 (parallel) |
+| [RankTracker](RankTracker/) | SEO rank monitoring | Google Light | 1–3 (pagination) |
+| [PriceMonitor](PriceMonitor/) | Price monitoring | Google Shopping, Walmart | 2 (parallel) |
+| [AiResearchAgent](AiResearchAgent/) | AI/RAG context gathering | Google Light, Google News, Google Scholar | 3 (parallel) |
+| [ContentDiscovery](ContentDiscovery/) | Market research & content gaps | Google News, Google Light | 2 (sequential) |
+| [ErrorHandling](ErrorHandling/) | Reliability patterns | — | 0–2 |
+| [DependencyInjection](DependencyInjection/) | Enterprise DI integration | Google | 1 |
 
 ## Running
 
 ```bash
-cd examples/BasicSearch
-dotnet run -- YOUR_API_KEY
-```
-
-Or set the `SERPAPI_KEY` environment variable:
-
-```bash
 export SERPAPI_KEY=your_key_here
-cd examples/BasicSearch
+cd LeadFinder
 dotnet run
 ```
 
-## Examples
+Or pass the key directly:
 
-| Example | Description |
-|---------|-------------|
-| [BasicSearch](BasicSearch/) | Minimal synchronous search |
-| [AsyncSearch](AsyncSearch/) | Async/await with CancellationToken |
-| [Pagination](Pagination/) | Iterate pages with IAsyncEnumerable |
-| [MultipleEngines](MultipleEngines/) | Google, Bing, YouTube, Google Maps |
-| [ErrorHandling](ErrorHandling/) | Exception types and retry pattern |
-| [DependencyInjection](DependencyInjection/) | ASP.NET Core / generic host setup |
-| [ResearchFanOut](ResearchFanOut/) | Multi-engine parallel research with safe disposal and partial failure |
-| [ProgressiveRefinement](ProgressiveRefinement/) | Narrow → broad → time-filtered query refinement |
+```bash
+dotnet run -- your_key_here
+```

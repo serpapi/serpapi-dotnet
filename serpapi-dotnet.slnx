@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/examples/">
+    <Project Path="examples/AiResearchAgent/AiResearchAgent.csproj" />
+    <Project Path="examples/CompetitorTracker/CompetitorTracker.csproj" />
+    <Project Path="examples/ContentDiscovery/ContentDiscovery.csproj" />
+    <Project Path="examples/DependencyInjection/DependencyInjection.csproj" />
+    <Project Path="examples/ErrorHandling/ErrorHandling.csproj" />
+    <Project Path="examples/LeadFinder/LeadFinder.csproj" />
+    <Project Path="examples/PriceMonitor/PriceMonitor.csproj" />
+    <Project Path="examples/RankTracker/RankTracker.csproj" />
+  </Folder>
+  <Project Path="serpapi/serpapi.csproj" />
+  <Project Path="test/test.csproj" />
+</Solution>

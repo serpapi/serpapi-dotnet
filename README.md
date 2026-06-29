@@ -430,16 +430,16 @@ using var client = new SerpApiClient(
 
 See [`examples/`](examples/) for runnable projects:
 
-| Example | Description |
-|---------|-------------|
-| [BasicSearch](examples/BasicSearch/) | Minimal search |
-| [AsyncSearch](examples/AsyncSearch/) | Concurrent queries with `Task.WhenAll` |
-| [Pagination](examples/Pagination/) | `IAsyncEnumerable` page iteration |
-| [MultipleEngines](examples/MultipleEngines/) | Google, Bing, YouTube, Maps |
-| [ErrorHandling](examples/ErrorHandling/) | Exception types and retry |
-| [DependencyInjection](examples/DependencyInjection/) | ASP.NET Core / generic host |
-| [ResearchFanOut](examples/ResearchFanOut/) | Multi-engine parallel research |
-| [ProgressiveRefinement](examples/ProgressiveRefinement/) | Narrow → broad query refinement |
+| Example | Use Case | Description |
+|---------|----------|-------------|
+| [LeadFinder](examples/LeadFinder/) | Lead generation | Find local businesses via Google Maps for sales outreach |
+| [CompetitorTracker](examples/CompetitorTracker/) | SEO & competitive intel | Monitor brand vs competitor SERP positions across engines |
+| [RankTracker](examples/RankTracker/) | SEO rank monitoring | Track keyword positions page-by-page with pagination |
+| [PriceMonitor](examples/PriceMonitor/) | Price monitoring | Compare product prices across Google Shopping and Walmart |
+| [AiResearchAgent](examples/AiResearchAgent/) | AI/RAG pipelines | Gather multi-source context (web + news + scholar) for LLMs |
+| [ContentDiscovery](examples/ContentDiscovery/) | Market research | Find trending topics, PAA questions, and content gaps |
+| [ErrorHandling](examples/ErrorHandling/) | Reliability | Exception types, retry patterns, and graceful degradation |
+| [DependencyInjection](examples/DependencyInjection/) | Enterprise integration | ASP.NET Core / generic host with `IHttpClientFactory` |
 
 ```bash
 export SERPAPI_KEY=your_key_here
