@@ -77,6 +77,9 @@ public sealed class SerpApiClient : IDisposable
         Dictionary<string, string> parameters,
         CancellationToken cancellationToken = default)
     {
+        if (parameters is null)
+            throw new ArgumentNullException(nameof(parameters));
+
         var url = BuildUrl("/search", parameters, outputJson: true);
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
         var response = ParseResponse(json);
@@ -99,6 +102,9 @@ public sealed class SerpApiClient : IDisposable
         Dictionary<string, string> parameters,
         CancellationToken cancellationToken = default)
     {
+        if (parameters is null)
+            throw new ArgumentNullException(nameof(parameters));
+
         var url = BuildUrl("/search", parameters, outputJson: false);
         return await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
     }
@@ -244,6 +250,9 @@ public sealed class SerpApiClient : IDisposable
         int maxPages = 100,
         CancellationToken cancellationToken = default)
     {
+        if (parameters is null)
+            throw new ArgumentNullException(nameof(parameters));
+
         if (maxPages <= 0)
             throw new ArgumentOutOfRangeException(nameof(maxPages), "maxPages must be at least 1.");
 

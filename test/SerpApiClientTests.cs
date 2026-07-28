@@ -566,6 +566,39 @@ public class SerpApiClientTests
     }
 
     [Fact]
+    public async Task SearchAsync_ThrowsOnNullParameters()
+    {
+        using var client = new SerpApiClient("key");
+
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+            () => client.SearchAsync(null!));
+
+        Assert.Equal("parameters", exception.ParamName);
+    }
+
+    [Fact]
+    public async Task HtmlAsync_ThrowsOnNullParameters()
+    {
+        using var client = new SerpApiClient("key");
+
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+            () => client.HtmlAsync(null!));
+
+        Assert.Equal("parameters", exception.ParamName);
+    }
+
+    [Fact]
+    public void SearchPagesAsync_ThrowsOnNullParameters()
+    {
+        using var client = new SerpApiClient("key");
+
+        var exception = Assert.Throws<ArgumentNullException>(
+            () => client.SearchPagesAsync(null!));
+
+        Assert.Equal("parameters", exception.ParamName);
+    }
+
+    [Fact]
     public void Constructor_HttpClient_CopiesOptions()
     {
         var options = new SerpApiClientOptions
