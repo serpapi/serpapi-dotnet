@@ -417,15 +417,20 @@ builder.Services.AddSerpApi(options =>
 
 Uses `IHttpClientFactory` for connection management.
 
-#### Retry with Polly
+#### Resilience
+
+Install the `Microsoft.Extensions.Http.Resilience` package:
+
+```bash
+dotnet add package Microsoft.Extensions.Http.Resilience
+```
 
 ```csharp
 builder.Services.AddSerpApi(options =>
 {
     options.ApiKey = builder.Configuration["SerpApi:ApiKey"]!;
 })
-.AddTransientHttpErrorPolicy(p =>
-    p.WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))));
+.AddStandardResilienceHandler();
 ```
 
 #### Corporate proxy
