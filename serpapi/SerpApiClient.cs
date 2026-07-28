@@ -363,7 +363,7 @@ public sealed class SerpApiClient : IDisposable
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             throw new SerpApiTimeoutException(
-                $"Request timed out after {_options.Timeout.TotalSeconds}s", ex);
+                $"Request timed out after {_httpClient.Timeout.TotalSeconds}s", ex);
         }
         catch (HttpRequestException ex)
         {

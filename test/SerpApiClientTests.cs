@@ -214,14 +214,16 @@ public class SerpApiClientTests
 
         var httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromMilliseconds(50) };
         using var client = new SerpApiClient(httpClient,
-            new SerpApiClientOptions { ApiKey = "key" });
+            new SerpApiClientOptions { ApiKey = "key", Timeout = TimeSpan.FromSeconds(30) });
 
-        await Assert.ThrowsAsync<SerpApiTimeoutException>(() =>
+        var exception = await Assert.ThrowsAsync<SerpApiTimeoutException>(() =>
             client.SearchAsync(new Dictionary<string, string>
             {
                 ["engine"] = "google",
                 ["q"] = "test"
             }));
+
+        Assert.Contains("0.05s", exception.Message);
     }
 
     [Fact]
