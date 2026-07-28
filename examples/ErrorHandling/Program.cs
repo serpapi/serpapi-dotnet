@@ -27,15 +27,11 @@ using (var client = new SerpApiClient("invalid_key_12345"))
 {
     try
     {
-        await client.SearchAsync(new Dictionary<string, string>
+        using var results = await client.SearchAsync(new Dictionary<string, string>
         {
             ["engine"] = "google",
             ["q"] = "test"
         });
-    }
-    catch (SerpApiHttpException ex)
-    {
-        Console.WriteLine($"  HTTP {ex.StatusCode}: {ex.Message}");
     }
     catch (SerpApiKeyException ex)
     {
@@ -52,7 +48,7 @@ using (var client = new SerpApiClient(apiKey, new SerpApiClientOptions
 {
     try
     {
-        await client.SearchAsync(new Dictionary<string, string>
+        using var results = await client.SearchAsync(new Dictionary<string, string>
         {
             ["engine"] = "google",
             ["q"] = "timeout test"

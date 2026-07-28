@@ -158,6 +158,52 @@ public class SerpApiClientTests
     }
 
     [Fact]
+    public async Task SearchAsync_ThrowsKeyExceptionOnInvalidKeyHttpError()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Content = new StringContent("""{"error": "Invalid API key"}""")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "invalid_key" });
+
+        var exception = await Assert.ThrowsAsync<SerpApiKeyException>(() =>
+            client.SearchAsync(new Dictionary<string, string>
+            {
+                ["engine"] = "google",
+                ["q"] = "test"
+            }));
+
+        Assert.Equal("Invalid API key", exception.Message);
+    }
+
+    [Fact]
+    public async Task SearchAsync_ThrowsHttpExceptionOnQuotaHttpError()
+    {
+        const string message = "You have run out of searches. Upgrade your API key plan.";
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.TooManyRequests)
+            {
+                Content = new StringContent($"{{\"error\":\"{message}\"}}")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var exception = await Assert.ThrowsAsync<SerpApiHttpException>(() =>
+            client.SearchAsync(new Dictionary<string, string>
+            {
+                ["engine"] = "google",
+                ["q"] = "test"
+            }));
+
+        Assert.Equal(429, exception.StatusCode);
+        Assert.Equal(message, exception.Message);
+    }
+
+    [Fact]
     public async Task SearchAsync_ThrowsOnTimeout()
     {
         var handler = new MockHttpHandler(async (_, ct) =>
@@ -795,6 +841,30 @@ public class SerpApiClientTests
 
         Assert.IsNotType<SerpApiKeyException>(ex);
         Assert.Contains("Google hasn't returned", ex.Message);
+    }
+
+    [Fact]
+    public async Task SearchAsync_ThrowsGenericExceptionOnQuotaError()
+    {
+        const string message = "You have run out of searches. Upgrade your API key plan.";
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent($"{{\"error\":\"{message}\"}}")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var exception = await Assert.ThrowsAsync<SerpApiException>(() =>
+            client.SearchAsync(new Dictionary<string, string>
+            {
+                ["engine"] = "google",
+                ["q"] = "test"
+            }));
+
+        Assert.IsNotType<SerpApiKeyException>(exception);
+        Assert.Equal(message, exception.Message);
     }
 
     // --- Dispose safety ---

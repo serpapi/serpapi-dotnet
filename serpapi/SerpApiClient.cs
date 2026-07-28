@@ -350,6 +350,11 @@ public sealed class SerpApiClient : IDisposable
                 }
                 catch { /* not JSON, use raw content */ }
 
+                if (errorMessage.IndexOf("Invalid API key", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    throw new SerpApiKeyException(errorMessage);
+                }
+
                 throw new SerpApiHttpException((int)response.StatusCode, errorMessage);
             }
 
@@ -372,8 +377,7 @@ public sealed class SerpApiClient : IDisposable
         if (error != null && error.Value.ValueKind == JsonValueKind.String)
         {
             var message = error.Value.GetString()!;
-            if (message.IndexOf("API key", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                message.IndexOf("Invalid API", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (message.IndexOf("Invalid API key", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 throw new SerpApiKeyException(message);
             }
