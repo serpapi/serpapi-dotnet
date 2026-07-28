@@ -51,6 +51,9 @@ public sealed class SerpApiClient : IDisposable
     /// <param name="options">Configuration including API key.</param>
     public SerpApiClient(HttpClient httpClient, SerpApiClientOptions options)
     {
+        if (options is null)
+            throw new ArgumentNullException(nameof(options));
+
         if (string.IsNullOrWhiteSpace(options.ApiKey))
             throw new SerpApiKeyException("API key must not be empty. Get one at https://serpapi.com/manage-api-key");
 

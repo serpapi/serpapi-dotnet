@@ -36,6 +36,17 @@ public class SerpApiClientTests
     }
 
     [Fact]
+    public void Constructor_HttpClient_ThrowsOnNullOptions()
+    {
+        using var httpClient = new HttpClient();
+
+        var exception = Assert.Throws<ArgumentNullException>(
+            () => new SerpApiClient(httpClient, null!));
+
+        Assert.Equal("options", exception.ParamName);
+    }
+
+    [Fact]
     public async Task SearchAsync_BuildsCorrectUrl()
     {
         string? capturedUrl = null;
