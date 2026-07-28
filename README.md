@@ -90,7 +90,10 @@ using var page2 = await client.NextPageAsync(results);
 // Iterate all pages as an async stream
 await foreach (var page in client.SearchPagesAsync(parameters, maxPages: 5))
 {
-    Console.WriteLine($"Page has {page.OrganicResults?.GetArrayLength()} results");
+    using (page)
+    {
+        Console.WriteLine($"Page has {page.OrganicResults?.GetArrayLength()} results");
+    }
 }
 ```
 
@@ -109,7 +112,19 @@ var tasks = new[]
     })
 };
 
-var results = await Task.WhenAll(tasks);
+try
+{
+    var results = await Task.WhenAll(tasks);
+    // Process results here.
+}
+finally
+{
+    foreach (var task in tasks)
+    {
+        if (task.Status == TaskStatus.RanToCompletion)
+            task.Result.Dispose();
+    }
+}
 ```
 
 ### Location API
