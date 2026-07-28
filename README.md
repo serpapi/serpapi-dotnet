@@ -443,7 +443,7 @@ See [`examples/`](examples/) for runnable projects:
 
 ```bash
 export SERPAPI_KEY=your_key_here
-cd examples/BasicSearch
+cd examples/LeadFinder
 dotnet run
 ```
 
