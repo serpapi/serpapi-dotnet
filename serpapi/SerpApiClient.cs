@@ -236,14 +236,22 @@ public sealed class SerpApiClient : IDisposable
     /// <param name="parameters">Search parameters.</param>
     /// <param name="maxPages">Maximum number of pages to retrieve.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async IAsyncEnumerable<SerpApiResponse> SearchPagesAsync(
+    public IAsyncEnumerable<SerpApiResponse> SearchPagesAsync(
         Dictionary<string, string> parameters,
         int maxPages = 100,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         if (maxPages <= 0)
             throw new ArgumentOutOfRangeException(nameof(maxPages), "maxPages must be at least 1.");
 
+        return SearchPagesIteratorAsync(parameters, maxPages, cancellationToken);
+    }
+
+    private async IAsyncEnumerable<SerpApiResponse> SearchPagesIteratorAsync(
+        Dictionary<string, string> parameters,
+        int maxPages,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+    {
         var current = await SearchAsync(parameters, cancellationToken).ConfigureAwait(false);
         var nextUrl = current.NextPageUrl;
         yield return current;

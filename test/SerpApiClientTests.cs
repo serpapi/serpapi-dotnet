@@ -544,18 +544,14 @@ public class SerpApiClientTests
     }
 
     [Fact]
-    public async Task SearchPagesAsync_ThrowsOnInvalidMaxPages()
+    public void SearchPagesAsync_ThrowsOnInvalidMaxPages()
     {
         using var client = new SerpApiClient("key");
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
-        {
-            await foreach (var page in client.SearchPagesAsync(
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            client.SearchPagesAsync(
                 new Dictionary<string, string> { ["engine"] = "google", ["q"] = "test" },
-                maxPages: 0))
-            {
-                // should not reach here
-            }
-        });
+                maxPages: 0));
     }
 
     [Fact]
