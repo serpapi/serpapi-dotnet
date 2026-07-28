@@ -39,14 +39,14 @@ var scholar = client.SearchAsync(new Dictionary<string, string>
     ["as_ylo"] = DateTime.UtcNow.Year.ToString()
 });
 
-await Task.WhenAll(web, news, scholar);
-
 var sources = new List<(string Type, string Title, string Url, string Snippet)>();
 
 try
 {
+    await Task.WhenAll(web, news, scholar);
+
     // Collect web results
-    using var webResult = web.Result;
+    var webResult = await web;
     if (webResult.OrganicResults is { } webItems)
     {
         foreach (var r in webItems.EnumerateArray().Take(5))
@@ -61,7 +61,7 @@ try
     }
 
     // Collect news
-    using var newsResult = news.Result;
+    var newsResult = await news;
     var newsItems = newsResult["news_results"];
     if (newsItems is { } ni)
     {
@@ -77,7 +77,7 @@ try
     }
 
     // Collect academic papers
-    using var scholarResult = scholar.Result;
+    var scholarResult = await scholar;
     if (scholarResult.OrganicResults is { } papers)
     {
         foreach (var r in papers.EnumerateArray().Take(3))
@@ -112,4 +112,16 @@ try
 catch (SerpApiException ex)
 {
     Console.WriteLine($"Search error: {ex.Message}");
+}
+finally
+{
+    DisposeCompleted(web);
+    DisposeCompleted(news);
+    DisposeCompleted(scholar);
+}
+
+static void DisposeCompleted(Task<SerpApiResponse> task)
+{
+    if (task.Status == TaskStatus.RanToCompletion)
+        task.Result.Dispose();
 }

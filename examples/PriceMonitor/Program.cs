@@ -36,12 +36,13 @@ var walmart = client.SearchAsync(new Dictionary<string, string>
     ["query"] = product
 }, cts.Token);
 
-await Task.WhenAll(googleShopping, walmart);
-
-// Google Shopping results
-Console.WriteLine("=== Google Shopping ===");
-using (var gResults = googleShopping.Result)
+try
 {
+    await Task.WhenAll(googleShopping, walmart);
+
+    // Google Shopping results
+    Console.WriteLine("=== Google Shopping ===");
+    var gResults = await googleShopping;
     var shopping = gResults["shopping_results"];
     if (shopping is { } items)
     {
@@ -54,16 +55,14 @@ using (var gResults = googleShopping.Result)
         }
     }
     else Console.WriteLine("  No results");
-}
 
-// Walmart results
-Console.WriteLine("\n=== Walmart ===");
-using (var wResults = walmart.Result)
-{
+    // Walmart results
+    Console.WriteLine("\n=== Walmart ===");
+    var wResults = await walmart;
     var organic = wResults["organic_results"];
-    if (organic is { } items)
+    if (organic is { } walmartItems)
     {
-        foreach (var item in items.EnumerateArray().Take(5))
+        foreach (var item in walmartItems.EnumerateArray().Take(5))
         {
             var title = item.TryGetProperty("title", out var t) ? t.GetString() : "?";
             var price = item.TryGetProperty("primary_offer", out var po)
@@ -74,4 +73,23 @@ using (var wResults = walmart.Result)
         }
     }
     else Console.WriteLine("  No results");
+}
+catch (OperationCanceledException) when (cts.IsCancellationRequested)
+{
+    Console.WriteLine("Price search timed out after 20 seconds.");
+}
+catch (SerpApiException ex)
+{
+    Console.WriteLine($"Search error: {ex.Message}");
+}
+finally
+{
+    DisposeCompleted(googleShopping);
+    DisposeCompleted(walmart);
+}
+
+static void DisposeCompleted(Task<SerpApiResponse> task)
+{
+    if (task.Status == TaskStatus.RanToCompletion)
+        task.Result.Dispose();
 }

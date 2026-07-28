@@ -36,12 +36,11 @@ var bing = client.SearchAsync(new Dictionary<string, string>
     ["count"] = "20"
 });
 
-await Task.WhenAll(google, bing);
-
-var engines = new[] { ("Google", google.Result), ("Bing", bing.Result) };
-
 try
 {
+    await Task.WhenAll(google, bing);
+
+    var engines = new[] { ("Google", await google), ("Bing", await bing) };
     foreach (var (engineName, response) in engines)
     {
         Console.WriteLine($"=== {engineName} Rankings ===");
@@ -74,8 +73,18 @@ try
         Console.WriteLine();
     }
 }
+catch (SerpApiException ex)
+{
+    Console.WriteLine($"Search error: {ex.Message}");
+}
 finally
 {
-    foreach (var (_, response) in engines)
-        response.Dispose();
+    DisposeCompleted(google);
+    DisposeCompleted(bing);
+}
+
+static void DisposeCompleted(Task<SerpApiResponse> task)
+{
+    if (task.Status == TaskStatus.RanToCompletion)
+        task.Result.Dispose();
 }
