@@ -33,7 +33,6 @@ public static class SerpApiServiceCollectionExtensions
         {
             var options = sp.GetRequiredService<IOptions<SerpApiClientOptions>>().Value;
             httpClient.Timeout = options.Timeout;
-            httpClient.BaseAddress = new Uri(options.BaseUrl);
         })
         .AddTypedClient((httpClient, sp) =>
         {
