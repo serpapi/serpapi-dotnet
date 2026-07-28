@@ -79,7 +79,7 @@ public sealed class SerpApiClient : IDisposable
     {
         var url = BuildUrl("/search", parameters, outputJson: true);
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        var response = new SerpApiResponse(json);
+        var response = ParseResponse(json);
         try
         {
             ThrowIfError(response);
@@ -117,7 +117,7 @@ public sealed class SerpApiClient : IDisposable
 
         var url = BuildUrl($"/searches/{Uri.EscapeDataString(searchId)}.json", new Dictionary<string, string>(), outputJson: true);
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        var response = new SerpApiResponse(json);
+        var response = ParseResponse(json);
         try
         {
             ThrowIfError(response);
@@ -137,7 +137,7 @@ public sealed class SerpApiClient : IDisposable
     {
         var url = BuildUrl("/account", new Dictionary<string, string>(), outputJson: true);
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        var response = new SerpApiResponse(json);
+        var response = ParseResponse(json);
         try
         {
             ThrowIfError(response);
@@ -216,7 +216,7 @@ public sealed class SerpApiClient : IDisposable
         var separator = pageUrl.Contains('?') ? "&" : "?";
         var url = $"{pageUrl}{separator}api_key={Uri.EscapeDataString(_options.ApiKey!)}&source={DefaultSource}";
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        var result = new SerpApiResponse(json);
+        var result = ParseResponse(json);
         try
         {
             ThrowIfError(result);
@@ -390,6 +390,18 @@ public sealed class SerpApiClient : IDisposable
                 throw new SerpApiKeyException(message);
             }
             throw new SerpApiException(message);
+        }
+    }
+
+    private static SerpApiResponse ParseResponse(string json)
+    {
+        try
+        {
+            return new SerpApiResponse(json);
+        }
+        catch (JsonException ex)
+        {
+            throw new SerpApiException($"Failed to parse response: {ex.Message}", ex);
         }
     }
 

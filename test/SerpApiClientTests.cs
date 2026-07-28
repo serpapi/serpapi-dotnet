@@ -815,6 +815,47 @@ public class SerpApiClientTests
         Assert.Contains("502 Bad Gateway", ex.Message);
     }
 
+    [Fact]
+    public async Task SearchAsync_WrapsMalformedJsonResponse()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("not json")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var ex = await Assert.ThrowsAsync<SerpApiException>(() =>
+            client.SearchAsync(new Dictionary<string, string>
+            {
+                ["engine"] = "google",
+                ["q"] = "test"
+            }));
+
+        Assert.Contains("Failed to parse response", ex.Message);
+        Assert.IsAssignableFrom<JsonException>(ex.InnerException);
+    }
+
+    [Fact]
+    public async Task AccountAsync_WrapsMalformedJsonResponse()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("not json")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var ex = await Assert.ThrowsAsync<SerpApiException>(() => client.AccountAsync());
+
+        Assert.Contains("Failed to parse response", ex.Message);
+        Assert.IsAssignableFrom<JsonException>(ex.InnerException);
+    }
+
     // --- Non-API-key error from response body ---
 
     [Fact]
