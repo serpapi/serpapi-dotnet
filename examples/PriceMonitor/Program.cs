@@ -50,7 +50,7 @@ using (var gResults = googleShopping.Result)
             var title = item.TryGetProperty("title", out var t) ? t.GetString() : "?";
             var price = item.TryGetProperty("extracted_price", out var p) ? $"${p}" : "N/A";
             var source = item.TryGetProperty("source", out var s) ? s.GetString() : "";
-            Console.WriteLine($"  ${price,-8} {source,-15} {title}");
+            Console.WriteLine($"  {price,-8} {source,-15} {title}");
         }
     }
     else Console.WriteLine("  No results");
