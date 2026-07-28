@@ -346,6 +346,17 @@ public class SerpApiClientTests
     }
 
     [Fact]
+    public async Task NextPageAsync_ThrowsOnNullResponse()
+    {
+        using var client = new SerpApiClient("key");
+
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            client.NextPageAsync(null!));
+
+        Assert.Equal("response", exception.ParamName);
+    }
+
+    [Fact]
     public async Task NextPageAsync_FollowsPaginationUrl()
     {
         var json = """

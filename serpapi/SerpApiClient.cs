@@ -191,6 +191,9 @@ public sealed class SerpApiClient : IDisposable
         SerpApiResponse response,
         CancellationToken cancellationToken = default)
     {
+        if (response is null)
+            throw new ArgumentNullException(nameof(response));
+
         var nextUrl = response.NextPageUrl;
         if (string.IsNullOrEmpty(nextUrl))
             return null;
