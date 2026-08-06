@@ -17,6 +17,8 @@ public sealed class SerpApiClientOptions
 
     /// <summary>
     /// HTTP request timeout. Defaults to 60 seconds.
+    /// Only applied when the client creates its own HttpClient (or via the <c>AddSerpApi</c>
+    /// DI extension); ignored when passing a pre-configured HttpClient directly.
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(60);
 }

@@ -49,6 +49,11 @@ public sealed class SerpApiClient : IDisposable
     /// </summary>
     /// <param name="httpClient">Pre-configured HttpClient instance.</param>
     /// <param name="options">Configuration including API key.</param>
+    /// <remarks>
+    /// <see cref="SerpApiClientOptions.Timeout"/> is not applied to <paramref name="httpClient"/>;
+    /// configure <see cref="HttpClient.Timeout"/> on the instance itself. The DI extension
+    /// <c>AddSerpApi</c> does this automatically.
+    /// </remarks>
     public SerpApiClient(HttpClient httpClient, SerpApiClientOptions options)
     {
         if (options is null)
