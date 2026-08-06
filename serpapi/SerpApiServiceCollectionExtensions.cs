@@ -29,14 +29,10 @@ public static class SerpApiServiceCollectionExtensions
     {
         services.Configure(configure);
 
-        return services.AddHttpClient<SerpApiClient>((sp, httpClient) =>
+        return services.AddHttpClient<SerpApiClient, SerpApiClient>((httpClient, sp) =>
         {
             var options = sp.GetRequiredService<IOptions<SerpApiClientOptions>>().Value;
             httpClient.Timeout = options.Timeout;
-        })
-        .AddTypedClient((httpClient, sp) =>
-        {
-            var options = sp.GetRequiredService<IOptions<SerpApiClientOptions>>().Value;
             return new SerpApiClient(httpClient, options);
         });
     }

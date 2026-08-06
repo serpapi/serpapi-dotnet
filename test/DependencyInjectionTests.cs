@@ -30,4 +30,15 @@ public class DependencyInjectionTests
 
         Assert.NotNull(builder);
     }
+
+    [Fact]
+    public void AddSerpApi_RegistersClientExactlyOnce()
+    {
+        var services = new ServiceCollection();
+        services.AddSerpApi(options => options.ApiKey = "test_key");
+
+        var provider = services.BuildServiceProvider();
+        var clients = provider.GetServices<SerpApiClient>().ToList();
+        Assert.Single(clients);
+    }
 }
