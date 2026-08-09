@@ -3,6 +3,8 @@
 [![NuGet](https://img.shields.io/nuget/v/serpapi)](https://www.nuget.org/packages/serpapi)
 [![Build](https://github.com/serpapi/serpapi-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/serpapi/serpapi-dotnet/actions/workflows/ci.yml)
 
+> **Not yet published.** The `serpapi` package hasn't shipped its first NuGet release — the badge above will go green once v1.0.0 is out. Until then, build from source (see [Contributing](#contributing)) or reference the project directly.
+
 Integrate search data into your .NET application, AI workflow, or LLM/RAG pipeline. This is the official .NET client for [SerpApi](https://serpapi.com).
 
 SerpApi supports Google, Google Maps, Google Shopping, Bing, Baidu, Yandex, Yahoo, DuckDuckGo, eBay, Walmart, YouTube, and [100+ engines](https://serpapi.com).
@@ -32,6 +34,45 @@ CI builds and tests every target framework above on both **Linux** and **Windows
 
 ```bash
 dotnet add package serpapi
+```
+
+## Migrating from google-search-results-dotnet
+
+This package (`serpapi`) is a ground-up rewrite of the previous official client, [`google-search-results-dotnet`](https://www.nuget.org/packages/google-search-results-dotnet). It's a new package ID, not an in-place upgrade — install `serpapi` alongside or instead of the old package; there's no automatic migration.
+
+| | `google-search-results-dotnet` (legacy) | `serpapi` (this package) |
+|---|---|---|
+| Client type | `SerpApi` | `SerpApiClient` |
+| Construction | `new SerpApi(Hashtable defaultParameter)` | `new SerpApiClient(string apiKey, SerpApiClientOptions? options = null)` |
+| Parameters | `Hashtable` | `Dictionary<string, string>` |
+| Search (JSON) | `JObject search(Hashtable)` — synchronous | `Task<SerpApiResponse> SearchAsync(Dictionary<string, string>, CancellationToken)` — async (sync `Search(...)` wrapper also available) |
+| Search (HTML) | `string html(Hashtable)` | `Task<string> HtmlAsync(...)` / `Html(...)` |
+| Archive | `JObject searchArchive(string searchId)` | `Task<SerpApiResponse> SearchArchiveAsync(string searchId, ...)` / `SearchArchive(...)` |
+| Account info | `JObject account(string apiKey = "")` | `Task<SerpApiResponse> AccountAsync(...)` / `Account()` |
+| Locations | `JArray location(Hashtable)` | `Task<JsonElement> LocationAsync(string query, int limit, ...)` / `Location(...)` |
+| Result parsing | `Newtonsoft.Json.Linq.JObject`/`JArray` | `System.Text.Json`-based `SerpApiResponse` (indexer, typed convenience properties, `As<T>()`/`GetProperty<T>()`) |
+| Pagination | Manual — construct next-page requests yourself | Built in: `NextPageAsync(response)` and `SearchPagesAsync(parameters)` (`IAsyncEnumerable`) |
+| Timeout | `setTimeoutSeconds(int)` on the client | `SerpApiClientOptions.Timeout` at construction |
+| Errors | Exceptions from `Newtonsoft.Json`/`HttpClient` directly | Typed exceptions: `SerpApiKeyException`, `SerpApiHttpException`, `SerpApiTimeoutException`, `SerpApiException` |
+| Dependency injection | Not supported | `services.AddSerpApi(...)` with `IHttpClientFactory` |
+| Target frameworks | .NET Framework era APIs | .NET Standard 2.0, .NET 7–10 |
+
+Before:
+
+```csharp
+var serp = new SerpApi(new Hashtable { { "api_key", apiKey } });
+JObject results = serp.search(new Hashtable { { "engine", "google" }, { "q", "coffee" } });
+```
+
+After:
+
+```csharp
+using var client = new SerpApiClient(apiKey);
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google",
+    ["q"] = "coffee"
+});
 ```
 
 ## Simple Usage
