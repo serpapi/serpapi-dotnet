@@ -8,8 +8,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    name: Build & Test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    name: Build & Test (${{ matrix.os }})
     steps:
       - uses: actions/checkout@v6
 
@@ -31,16 +35,17 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release
         env:
-          API_KEY: ${{ secrets.API_KEY }}
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
 
       - name: Run examples
+        shell: bash
         env:
-          API_KEY: ${{ secrets.API_KEY }}
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
         run: |
           for proj in examples/*/; do
             name=$(basename "$proj")
             echo "::group::$name"
-            dotnet run --project "$proj" --configuration Release -- "$API_KEY"
+            dotnet run --project "$proj" --configuration Release -- "$SERPAPI_KEY"
             echo "::endgroup::"
           done
 
