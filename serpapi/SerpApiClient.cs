@@ -86,18 +86,7 @@ public sealed class SerpApiClient : IDisposable
             throw new ArgumentNullException(nameof(parameters));
 
         var url = BuildUrl("/search", parameters, outputJson: true);
-        var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        var response = ParseResponse(json);
-        try
-        {
-            ThrowIfError(response);
-            return response;
-        }
-        catch
-        {
-            response.Dispose();
-            throw;
-        }
+        return await GetResponseAsync(url, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -127,18 +116,7 @@ public sealed class SerpApiClient : IDisposable
             throw new ArgumentException("searchId must not be empty.", nameof(searchId));
 
         var url = BuildUrl($"/searches/{Uri.EscapeDataString(searchId)}.json", new Dictionary<string, string>(), outputJson: true);
-        var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        var response = ParseResponse(json);
-        try
-        {
-            ThrowIfError(response);
-            return response;
-        }
-        catch
-        {
-            response.Dispose();
-            throw;
-        }
+        return await GetResponseAsync(url, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -147,18 +125,7 @@ public sealed class SerpApiClient : IDisposable
     public async Task<SerpApiResponse> AccountAsync(CancellationToken cancellationToken = default)
     {
         var url = BuildUrl("/account", new Dictionary<string, string>(), outputJson: true);
-        var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        var response = ParseResponse(json);
-        try
-        {
-            ThrowIfError(response);
-            return response;
-        }
-        catch
-        {
-            response.Dispose();
-            throw;
-        }
+        return await GetResponseAsync(url, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -227,20 +194,27 @@ public sealed class SerpApiClient : IDisposable
         if (parsedUri.Scheme != "https" && parsedUri.Scheme != "http")
             throw new SerpApiException($"Pagination URL must use HTTP(S), got '{parsedUri.Scheme}'.");
 
-        var separator = pageUrl.Contains('?') ? "&" : "?";
-        var url = $"{pageUrl}{separator}api_key={Uri.EscapeDataString(_options.ApiKey!)}&source={DefaultSource}";
-        var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
-        var result = ParseResponse(json);
-        try
+        var url = AppendQueryParamIfMissing(pageUrl, "api_key", Uri.EscapeDataString(_options.ApiKey!));
+        url = AppendQueryParamIfMissing(url, "source", DefaultSource);
+        return await GetResponseAsync(url, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static string AppendQueryParamIfMissing(string url, string name, string escapedValue)
+    {
+        var queryStart = url.IndexOf('?');
+        if (queryStart >= 0)
         {
-            ThrowIfError(result);
-            return result;
+            var query = url.Substring(queryStart + 1);
+            foreach (var pair in query.Split('&'))
+            {
+                var eq = pair.IndexOf('=');
+                var key = eq >= 0 ? pair.Substring(0, eq) : pair;
+                if (string.Equals(key, name, StringComparison.OrdinalIgnoreCase))
+                    return url;
+            }
         }
-        catch
-        {
-            result.Dispose();
-            throw;
-        }
+        var separator = queryStart >= 0 ? "&" : "?";
+        return $"{url}{separator}{name}={escapedValue}";
     }
 
     /// <summary>
@@ -351,6 +325,22 @@ public sealed class SerpApiClient : IDisposable
         return $"{_options.BaseUrl.TrimEnd('/')}{endpoint}?{string.Join("&", queryParts)}";
     }
 
+    private async Task<SerpApiResponse> GetResponseAsync(string url, CancellationToken cancellationToken)
+    {
+        var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
+        var response = ParseResponse(json);
+        try
+        {
+            ThrowIfError(response);
+            return response;
+        }
+        catch
+        {
+            response.Dispose();
+            throw;
+        }
+    }
+
     private async Task<string> GetStringAsync(string url, CancellationToken cancellationToken)
     {
         try
@@ -375,7 +365,8 @@ public sealed class SerpApiClient : IDisposable
                 }
                 catch { /* not JSON, use raw content */ }
 
-                if (errorMessage.IndexOf("Invalid API key", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (response.StatusCode == HttpStatusCode.Unauthorized ||
+                    errorMessage.IndexOf("Invalid API key", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     throw new SerpApiKeyException(errorMessage);
                 }

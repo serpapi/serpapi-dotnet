@@ -84,20 +84,29 @@ public sealed class SerpApiResponse : IDisposable
     /// </summary>
     public string RawJson => _rawJson;
 
+    // SerpApi responses use snake_case property names (organic_results, search_metadata).
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        PropertyNameCaseInsensitive = true
+    };
+
     /// <summary>
     /// Deserialize the entire response to a specific type.
+    /// Snake_case JSON properties map to PascalCase members automatically.
     /// </summary>
-    public T? As<T>() => JsonSerializer.Deserialize<T>(_rawJson);
+    public T? As<T>() => _root.Deserialize<T>(SerializerOptions);
 
     /// <summary>
     /// Deserialize a specific property to a type.
+    /// Snake_case JSON properties map to PascalCase members automatically.
     /// </summary>
     public T? GetProperty<T>(string key)
     {
         var element = this[key];
         if (element == null)
             return default;
-        return JsonSerializer.Deserialize<T>(element.Value.GetRawText());
+        return element.Value.Deserialize<T>(SerializerOptions);
     }
 
     /// <summary>

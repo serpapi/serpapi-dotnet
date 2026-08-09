@@ -36,6 +36,9 @@
   <!-- netstandard2.0 polyfills -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+  </ItemGroup>
+  <!-- netstandard2.0 has no System.Text.Json; net7.0's in-box version lacks JsonNamingPolicy.SnakeCaseLower -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net7.0'">
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   <ItemGroup>

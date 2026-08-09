@@ -16,6 +16,18 @@ SerpApi supports Google, Google Maps, Google Shopping, Bing, Baidu, Yandex, Yaho
 - Targets .NET Standard 2.0, .NET 7, 8, 9, and 10
 - Zero external runtime dependencies
 
+## Compatibility
+
+| Target framework | Minimum consumer runtime | Notes |
+|---|---|---|
+| `netstandard2.0` | .NET Framework 4.6.1+, .NET Core 2.0+, Mono, Xamarin, UWP | Ships `Microsoft.Bcl.AsyncInterfaces` and `System.Text.Json` as polyfills |
+| `net7.0` | .NET 7 | Out of support upstream, still built and tested |
+| `net8.0` | .NET 8 (LTS) | |
+| `net9.0` | .NET 9 (STS) | |
+| `net10.0` | .NET 10 (LTS) | Used for `dotnet pack` and local dev builds |
+
+CI builds and tests every target framework above on both **Linux** and **Windows**. Building locally requires the [.NET 10 SDK](https://dotnet.microsoft.com/download) (a single SDK at or above the highest TFM can build all lower ones).
+
 ## Installation
 
 ```bash
@@ -469,7 +481,7 @@ dotnet run
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/serpapi/serpapi-dotnet.
+Bug reports and pull requests are welcome on GitHub at https://github.com/serpapi/serpapi-dotnet. See [Compatibility](#compatibility) for SDK requirements.
 
 ```bash
 git clone https://github.com/serpapi/serpapi-dotnet.git
