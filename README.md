@@ -38,30 +38,29 @@ dotnet add package serpapi
 
 ## Migrating from google-search-results-dotnet
 
-This package (`serpapi`) is a ground-up rewrite of the previous official client, [`google-search-results-dotnet`](https://www.nuget.org/packages/google-search-results-dotnet). It's a new package ID, not an in-place upgrade — install `serpapi` alongside or instead of the old package; there's no automatic migration.
+`serpapi` replaces [`google-search-results-dotnet`](https://github.com/serpapi/google-search-results-dotnet), the previous official client. New package ID — install `serpapi` instead; there's no automatic upgrade path.
 
-| | `google-search-results-dotnet` (legacy) | `serpapi` (this package) |
+| | Old ([`google-search-results-dotnet`](https://github.com/serpapi/google-search-results-dotnet)) | New ([`serpapi-dotnet`](https://github.com/serpapi/serpapi-dotnet)) |
 |---|---|---|
-| Client type | `SerpApi` | `SerpApiClient` |
-| Construction | `new SerpApi(Hashtable defaultParameter)` | `new SerpApiClient(string apiKey, SerpApiClientOptions? options = null)` |
+| Client | One class per engine: `GoogleSearch`, `BingSearch`, `BaiduSearch`, `YahooSearch`, `YandexSearch`, `EbaySearch`, or generic `SerpApiSearch(parameter, apiKey, engine)` | One `SerpApiClient` for every engine — set `["engine"] = "google"` in the parameters |
+| Construction | `new GoogleSearch(Hashtable parameter, string apiKey)` | `new SerpApiClient(string apiKey)` |
 | Parameters | `Hashtable` | `Dictionary<string, string>` |
-| Search (JSON) | `JObject search(Hashtable)` — synchronous | `Task<SerpApiResponse> SearchAsync(Dictionary<string, string>, CancellationToken)` — async (sync `Search(...)` wrapper also available) |
-| Search (HTML) | `string html(Hashtable)` | `Task<string> HtmlAsync(...)` / `Html(...)` |
-| Archive | `JObject searchArchive(string searchId)` | `Task<SerpApiResponse> SearchArchiveAsync(string searchId, ...)` / `SearchArchive(...)` |
-| Account info | `JObject account(string apiKey = "")` | `Task<SerpApiResponse> AccountAsync(...)` / `Account()` |
-| Locations | `JArray location(Hashtable)` | `Task<JsonElement> LocationAsync(string query, int limit, ...)` / `Location(...)` |
-| Result parsing | `Newtonsoft.Json.Linq.JObject`/`JArray` | `System.Text.Json`-based `SerpApiResponse` (indexer, typed convenience properties, `As<T>()`/`GetProperty<T>()`) |
-| Pagination | Manual — construct next-page requests yourself | Built in: `NextPageAsync(response)` and `SearchPagesAsync(parameters)` (`IAsyncEnumerable`) |
-| Timeout | `setTimeoutSeconds(int)` on the client | `SerpApiClientOptions.Timeout` at construction |
-| Errors | Exceptions from `Newtonsoft.Json`/`HttpClient` directly | Typed exceptions: `SerpApiKeyException`, `SerpApiHttpException`, `SerpApiTimeoutException`, `SerpApiException` |
-| Dependency injection | Not supported | `services.AddSerpApi(...)` with `IHttpClientFactory` |
-| Target frameworks | .NET Framework era APIs | .NET Standard 2.0, .NET 7–10 |
+| Search | `JObject data = search.GetJson();` — synchronous | `await client.SearchAsync(parameters)` → `SerpApiResponse` (sync `Search(...)` also available) |
+| Archive | `search.GetSearchArchiveJson(id)` | `await client.SearchArchiveAsync(id)` |
+| Account | `search.GetAccount()` | `await client.AccountAsync()` |
+| Locations | `search.GetLocation(query, limit)` | `await client.LocationAsync(query, limit)` |
+| Timeout | `search.setTimeoutSeconds(int)` | `SerpApiClientOptions.Timeout` at construction |
+| Cleanup | `search.Close()` | `using var client = ...` (implements `IDisposable`) |
+| Result type | `Newtonsoft.Json.Linq.JObject`/`JArray` | `System.Text.Json`-based `SerpApiResponse` (indexer, `As<T>()`, `GetProperty<T>()`) |
+| Errors | `SerpApiSearchException` | `SerpApiKeyException`, `SerpApiHttpException`, `SerpApiTimeoutException`, `SerpApiException` |
+| Pagination | Manual | `NextPageAsync(response)` / `SearchPagesAsync(parameters)` (`IAsyncEnumerable`) |
 
 Before:
 
 ```csharp
-var serp = new SerpApi(new Hashtable { { "api_key", apiKey } });
-JObject results = serp.search(new Hashtable { { "engine", "google" }, { "q", "coffee" } });
+var ht = new Hashtable { { "q", "coffee" } };
+GoogleSearch search = new GoogleSearch(ht, apiKey);
+JObject data = search.GetJson();
 ```
 
 After:
