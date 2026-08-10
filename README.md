@@ -5,74 +5,32 @@
 
 > **Not yet published.** The `serpapi` package hasn't shipped its first NuGet release — the badge above will go green once v1.0.0 is out. Until then, build from source (see [Contributing](#contributing)) or reference the project directly.
 
-Integrate search data into your .NET application, AI workflow, or LLM/RAG pipeline. This is the official .NET client for [SerpApi](https://serpapi.com).
+Integrate search data into your AI workflow, RAG / fine-tuning, or .NET application using this official wrapper for [SerpApi](https://serpapi.com).
 
-SerpApi supports Google, Google Maps, Google Shopping, Bing, Baidu, Yandex, Yahoo, DuckDuckGo, eBay, Walmart, YouTube, and [100+ engines](https://serpapi.com).
+SerpApi supports Google, Google Maps, Google Shopping, Bing, Baidu, Yandex, Yahoo, DuckDuckGo, eBay, Walmart, YouTube, App Stores, and [more](https://serpapi.com).
+
+Query a vast range of data at scale, including web search results, flight schedules, stock market data, news headlines, and [more](https://serpapi.com).
 
 ## Features
 
-- Async-first with full `CancellationToken` support
-- Sync convenience wrappers
-- `IAsyncEnumerable` pagination
-- Dependency injection integration (`IHttpClientFactory`)
-- Targets .NET Standard 2.0, .NET 7, 8, 9, and 10
-- Zero external runtime dependencies
-
-## Compatibility
-
-| Target framework | Minimum consumer runtime | Notes |
-|---|---|---|
-| `netstandard2.0` | .NET Framework 4.6.1+, .NET Core 2.0+, Mono, Xamarin, UWP | Ships `Microsoft.Bcl.AsyncInterfaces` and `System.Text.Json` as polyfills |
-| `net7.0` | .NET 7 | Out of support upstream, still built and tested |
-| `net8.0` | .NET 8 (LTS) | |
-| `net9.0` | .NET 9 (STS) | |
-| `net10.0` | .NET 10 (LTS) | Used for `dotnet pack` and local dev builds |
-
-CI builds and tests every target framework above on both **Linux** and **Windows**. Building locally requires the [.NET 10 SDK](https://dotnet.microsoft.com/download) (a single SDK at or above the highest TFM can build all lower ones).
+- `async`-first → non-blocking API with full `CancellationToken` support, plus sync convenience wrappers
+- `IAsyncEnumerable` pagination → stream every page of results with one loop
+- Dependency injection → `IHttpClientFactory` integration for ASP.NET Core / generic host
+- Broad reach → targets .NET Standard 2.0 and .NET 7, 8, 9, 10
+- Zero external runtime dependencies on modern .NET
+- Extensive documentation and real-world examples included throughout
 
 ## Installation
+
+.NET 7 and higher are supported, plus .NET Framework 4.6.1+ via .NET Standard 2.0. Check [Supported .NET versions](#supported-net-versions) for the full matrix.
+
+If you are upgrading from the legacy [google-search-results-dotnet](https://github.com/serpapi/google-search-results-dotnet) library, check our [migration guide](#migration-quick-guide).
 
 ```bash
 dotnet add package serpapi
 ```
 
-## Migrating from google-search-results-dotnet
-
-`serpapi` replaces [`google-search-results-dotnet`](https://github.com/serpapi/google-search-results-dotnet), the previous official client. New package ID — install `serpapi` instead; there's no automatic upgrade path.
-
-| | Old ([`google-search-results-dotnet`](https://github.com/serpapi/google-search-results-dotnet)) | New ([`serpapi-dotnet`](https://github.com/serpapi/serpapi-dotnet)) |
-|---|---|---|
-| Client | One class per engine: `GoogleSearch`, `BingSearch`, `BaiduSearch`, `YahooSearch`, `YandexSearch`, `EbaySearch`, or generic `SerpApiSearch(parameter, apiKey, engine)` | One `SerpApiClient` for every engine — set `["engine"] = "google"` in the parameters |
-| Construction | `new GoogleSearch(Hashtable parameter, string apiKey)` | `new SerpApiClient(string apiKey)` |
-| Parameters | `Hashtable` | `Dictionary<string, string>` |
-| Search | `JObject data = search.GetJson();` — synchronous | `await client.SearchAsync(parameters)` → `SerpApiResponse` (sync `Search(...)` also available) |
-| Archive | `search.GetSearchArchiveJson(id)` | `await client.SearchArchiveAsync(id)` |
-| Account | `search.GetAccount()` | `await client.AccountAsync()` |
-| Locations | `search.GetLocation(query, limit)` | `await client.LocationAsync(query, limit)` |
-| Timeout | `search.setTimeoutSeconds(int)` | `SerpApiClientOptions.Timeout` at construction |
-| Cleanup | `search.Close()` | `using var client = ...` (implements `IDisposable`) |
-| Result type | `Newtonsoft.Json.Linq.JObject`/`JArray` | `System.Text.Json`-based `SerpApiResponse` (indexer, `As<T>()`, `GetProperty<T>()`) |
-| Errors | `SerpApiSearchException` | `SerpApiKeyException`, `SerpApiHttpException`, `SerpApiTimeoutException`, `SerpApiException` |
-| Pagination | Manual | `NextPageAsync(response)` / `SearchPagesAsync(parameters)` (`IAsyncEnumerable`) |
-
-Before:
-
-```csharp
-var ht = new Hashtable { { "q", "coffee" } };
-GoogleSearch search = new GoogleSearch(ht, apiKey);
-JObject data = search.GetJson();
-```
-
-After:
-
-```csharp
-using var client = new SerpApiClient(apiKey);
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google",
-    ["q"] = "coffee"
-});
-```
+[NuGet package page](https://www.nuget.org/packages/serpapi)
 
 ## Simple Usage
 
@@ -93,63 +51,73 @@ foreach (var result in results.OrganicResults!.Value.EnumerateArray())
 }
 ```
 
-### Error handling
+This example runs a search for "coffee" on Google Light. See the [playground](https://serpapi.com/playground) to generate your own code.
+
+The SerpApi key can be obtained from [serpapi.com/signup](https://serpapi.com/users/sign_up?plan=free).
+
+Environment variables are a secure, safe, and easy way to manage secrets.
+Set `export SERPAPI_KEY=<secret_serpapi_key>` in your shell.
+.NET accesses these variables via `Environment.GetEnvironmentVariable("SERPAPI_KEY")`.
+
+## Search API advanced usage with Google search engine
+
+This example dives into the available parameters for the Google search engine.
+The list of parameters depends on the chosen search engine.
 
 ```csharp
-try
+using SerpApi;
+
+// serpapi client created with an API key and optional configuration
+using var client = new SerpApiClient(
+    Environment.GetEnvironmentVariable("SERPAPI_KEY")!,
+    new SerpApiClientOptions
+    {
+        Timeout = TimeSpan.FromSeconds(30) // HTTP timeout (default: 60s)
+    });
+
+// search query overview (more fields available depending on search engine)
+var parameters = new Dictionary<string, string>
 {
-    using var results = await client.SearchAsync(parameters);
-}
-catch (SerpApiKeyException)       { /* 401 — invalid API key */ }
-catch (SerpApiHttpException ex)   { /* 429, 500, etc — ex.StatusCode */ }
-catch (SerpApiTimeoutException)   { /* request timed out */ }
-catch (SerpApiException ex)       { /* catch-all */ }
-```
+    // select the search engine (full list: https://serpapi.com/)
+    ["engine"] = "google",
+    // actual search query
+    ["q"] = "Coffee",
+    // then add search engine specific options.
+    // for example: google specific parameters: https://serpapi.com/search-api
+    ["google_domain"] = "google.com",
+    ["location"] = "Austin, Texas",   // see: Location API
+    ["device"] = "desktop",           // desktop|mobile|tablet
+    ["hl"] = "en",                    // Google UI language
+    ["gl"] = "us",                    // Google country
+    ["safe"] = "active",              // safe search flag
+    ["start"] = "0",                  // pagination offset
+    ["num"] = "10"                    // number of results
+};
 
-## Search API usage
-
-### Get JSON results
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_light",
-    ["q"] = "coffee",
-    ["num"] = "10"
-});
-
+// search results as a parsed response
+using var results = await client.SearchAsync(parameters);
 Console.WriteLine(results.SearchId);
 Console.WriteLine(results.OrganicResults);
 Console.WriteLine(results["local_results"]);
+
+// search results as a raw HTML string
+string rawHtml = await client.HtmlAsync(parameters);
 ```
 
-### Get HTML results
+→ [SerpApi documentation](https://serpapi.com/search-api).
 
-```csharp
-string html = await client.HtmlAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_light",
-    ["q"] = "coffee"
-});
-```
+### Documentations
 
-### Pagination
+- [Full documentation on SerpApi.com](https://serpapi.com)
+- [Library GitHub page](https://github.com/serpapi/serpapi-dotnet)
+- [Library NuGet page](https://www.nuget.org/packages/serpapi)
+- [API health status](https://serpapi.com/status)
 
-```csharp
-// Next page
-using var page2 = await client.NextPageAsync(results);
-
-// Iterate all pages as an async stream
-await foreach (var page in client.SearchPagesAsync(parameters, maxPages: 5))
-{
-    using (page)
-    {
-        Console.WriteLine($"Page has {page.OrganicResults?.GetArrayLength()} results");
-    }
-}
-```
+## Advanced search API usage
 
 ### Search concurrently
+
+A single `SerpApiClient` can run many searches at once — no thread pool or connection juggling required.
 
 ```csharp
 var tasks = new[]
@@ -179,282 +147,33 @@ finally
 }
 ```
 
-### Location API
+### Pagination
 
 ```csharp
-var locations = await client.LocationAsync("Austin, TX", limit: 3);
-foreach (var loc in locations.EnumerateArray())
+// Next page
+using var page2 = await client.NextPageAsync(results);
+
+// Iterate all pages as an async stream
+await foreach (var page in client.SearchPagesAsync(parameters, maxPages: 5))
 {
-    Console.WriteLine(loc.GetProperty("name").GetString());
+    using (page)
+    {
+        Console.WriteLine($"Page has {page.OrganicResults?.GetArrayLength()} results");
+    }
 }
 ```
 
-### Search Archive API
-
-Retrieve a previous search (0 credits):
+### Error handling
 
 ```csharp
-using var archived = await client.SearchArchiveAsync("previous_search_id");
-```
-
-### Account API
-
-```csharp
-using var account = await client.AccountAsync();
-Console.WriteLine(account["plan_id"]);
-```
-
-## Basic examples per search engine
-
-### Search Google
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
+try
 {
-    ["engine"] = "google",
-    ["q"] = "coffee",
-    ["location"] = "Austin, Texas"
-});
-```
-
-* see: https://serpapi.com/search-api
-
-### Search Google Light
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_light",
-    ["q"] = "coffee"
-});
-```
-
-* see: https://serpapi.com/google-light-api
-
-### Search Google Scholar
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_scholar",
-    ["q"] = "machine learning"
-});
-```
-
-* see: https://serpapi.com/google-scholar-api
-
-### Search Google News
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_news",
-    ["q"] = "artificial intelligence"
-});
-```
-
-* see: https://serpapi.com/google-news-api
-
-### Search Google Maps
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_maps",
-    ["q"] = "pizza",
-    ["ll"] = "@40.7455096,-74.0083012,14z"
-});
-```
-
-* see: https://serpapi.com/google-maps-api
-
-### Search Google Shopping
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_shopping",
-    ["q"] = "laptop"
-});
-```
-
-* see: https://serpapi.com/google-shopping-api
-
-### Search Google Jobs
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_jobs",
-    ["q"] = "software engineer"
-});
-```
-
-* see: https://serpapi.com/google-jobs-api
-
-### Search Google Images
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_images",
-    ["q"] = "sunset"
-});
-```
-
-* see: https://serpapi.com/images-results
-
-### Search Google Finance
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "google_finance",
-    ["q"] = "AAPL:NASDAQ"
-});
-```
-
-* see: https://serpapi.com/google-finance-api
-
-### Search Bing
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "bing",
-    ["q"] = "coffee"
-});
-```
-
-* see: https://serpapi.com/bing-search-api
-
-### Search DuckDuckGo
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "duckduckgo",
-    ["q"] = "coffee"
-});
-```
-
-* see: https://serpapi.com/duckduckgo-search-api
-
-### Search Baidu
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "baidu",
-    ["q"] = "coffee"
-});
-```
-
-* see: https://serpapi.com/baidu-search-api
-
-### Search Yahoo
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "yahoo",
-    ["p"] = "coffee"
-});
-```
-
-* see: https://serpapi.com/yahoo-search-api
-
-### Search YouTube
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "youtube",
-    ["search_query"] = "latte art"
-});
-```
-
-* see: https://serpapi.com/youtube-search-api
-
-### Search Walmart
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "walmart",
-    ["query"] = "coffee maker"
-});
-```
-
-* see: https://serpapi.com/walmart-search-api
-
-### Search eBay
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "ebay",
-    ["_nkw"] = "laptop"
-});
-```
-
-* see: https://serpapi.com/ebay-search-api
-
-### Search Amazon
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "amazon",
-    ["k"] = "coffee"
-});
-```
-
-* see: https://serpapi.com/amazon-search-api
-
-### Search Naver
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "naver",
-    ["query"] = "coffee"
-});
-```
-
-* see: https://serpapi.com/naver-search-api
-
-### Search Apple App Store
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "apple_app_store",
-    ["term"] = "coffee"
-});
-```
-
-* see: https://serpapi.com/apple-app-store
-
-### Search Home Depot
-
-```csharp
-using var results = await client.SearchAsync(new Dictionary<string, string>
-{
-    ["engine"] = "home_depot",
-    ["q"] = "drill"
-});
-```
-
-* see: https://serpapi.com/home-depot-search-api
-
-## Configuration
-
-```csharp
-using var client = new SerpApiClient("YOUR_API_KEY", new SerpApiClientOptions
-{
-    Timeout = TimeSpan.FromSeconds(30)
-});
+    using var results = await client.SearchAsync(parameters);
+}
+catch (SerpApiKeyException)       { /* 401 — invalid API key */ }
+catch (SerpApiHttpException ex)   { /* 429, 500, etc — ex.StatusCode */ }
+catch (SerpApiTimeoutException)   { /* request timed out */ }
+catch (SerpApiException ex)       { /* catch-all */ }
 ```
 
 ### Dependency Injection
@@ -498,6 +217,285 @@ using var client = new SerpApiClient(
     new SerpApiClientOptions { ApiKey = "YOUR_API_KEY" });
 ```
 
+## APIs supported
+
+### Location API
+
+```csharp
+var locations = await client.LocationAsync("Austin, TX", limit: 3);
+foreach (var loc in locations.EnumerateArray())
+{
+    Console.WriteLine(loc.GetProperty("name").GetString());
+}
+```
+
+NOTE: api_key is not required for this endpoint.
+
+### Search Archive API
+
+This API allows retrieving previous search results (free of charge).
+First, run a search and save the search ID; then fetch it back from the archive.
+
+```csharp
+using var results = await client.SearchAsync(parameters);
+string searchId = results.SearchId!;
+
+using var archived = await client.SearchArchiveAsync(searchId);
+```
+
+### Account API
+
+```csharp
+using var account = await client.AccountAsync();
+Console.WriteLine(account["plan_id"]);
+```
+
+It prints your account information: plan, searches left, usage this month, and more.
+
+## Basic example per search engine
+
+### Search google
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google",
+    ["q"] = "coffee",
+    ["location"] = "Austin, Texas"
+});
+```
+
+see: [https://serpapi.com/search-api](https://serpapi.com/search-api)
+
+### Search google light
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google_light",
+    ["q"] = "coffee"
+});
+```
+
+see: [https://serpapi.com/google-light-api](https://serpapi.com/google-light-api)
+
+### Search google scholar
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google_scholar",
+    ["q"] = "machine learning"
+});
+```
+
+see: [https://serpapi.com/google-scholar-api](https://serpapi.com/google-scholar-api)
+
+### Search google news
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google_news",
+    ["q"] = "artificial intelligence"
+});
+```
+
+see: [https://serpapi.com/google-news-api](https://serpapi.com/google-news-api)
+
+### Search google maps
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google_maps",
+    ["q"] = "pizza",
+    ["ll"] = "@40.7455096,-74.0083012,14z"
+});
+```
+
+see: [https://serpapi.com/google-maps-api](https://serpapi.com/google-maps-api)
+
+### Search google shopping
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google_shopping",
+    ["q"] = "laptop"
+});
+```
+
+see: [https://serpapi.com/google-shopping-api](https://serpapi.com/google-shopping-api)
+
+### Search google jobs
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google_jobs",
+    ["q"] = "software engineer"
+});
+```
+
+see: [https://serpapi.com/google-jobs-api](https://serpapi.com/google-jobs-api)
+
+### Search google images
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google_images",
+    ["q"] = "sunset"
+});
+```
+
+see: [https://serpapi.com/images-results](https://serpapi.com/images-results)
+
+### Search google finance
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "google_finance",
+    ["q"] = "AAPL:NASDAQ"
+});
+```
+
+see: [https://serpapi.com/google-finance-api](https://serpapi.com/google-finance-api)
+
+### Search bing
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "bing",
+    ["q"] = "coffee"
+});
+```
+
+see: [https://serpapi.com/bing-search-api](https://serpapi.com/bing-search-api)
+
+### Search duckduckgo
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "duckduckgo",
+    ["q"] = "coffee"
+});
+```
+
+see: [https://serpapi.com/duckduckgo-search-api](https://serpapi.com/duckduckgo-search-api)
+
+### Search baidu
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "baidu",
+    ["q"] = "coffee"
+});
+```
+
+see: [https://serpapi.com/baidu-search-api](https://serpapi.com/baidu-search-api)
+
+### Search yahoo
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "yahoo",
+    ["p"] = "coffee"
+});
+```
+
+see: [https://serpapi.com/yahoo-search-api](https://serpapi.com/yahoo-search-api)
+
+### Search youtube
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "youtube",
+    ["search_query"] = "latte art"
+});
+```
+
+see: [https://serpapi.com/youtube-search-api](https://serpapi.com/youtube-search-api)
+
+### Search walmart
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "walmart",
+    ["query"] = "coffee maker"
+});
+```
+
+see: [https://serpapi.com/walmart-search-api](https://serpapi.com/walmart-search-api)
+
+### Search ebay
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "ebay",
+    ["_nkw"] = "laptop"
+});
+```
+
+see: [https://serpapi.com/ebay-search-api](https://serpapi.com/ebay-search-api)
+
+### Search amazon
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "amazon",
+    ["k"] = "coffee"
+});
+```
+
+see: [https://serpapi.com/amazon-search-api](https://serpapi.com/amazon-search-api)
+
+### Search naver
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "naver",
+    ["query"] = "coffee"
+});
+```
+
+see: [https://serpapi.com/naver-search-api](https://serpapi.com/naver-search-api)
+
+### Search apple app store
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "apple_app_store",
+    ["term"] = "coffee"
+});
+```
+
+see: [https://serpapi.com/apple-app-store](https://serpapi.com/apple-app-store)
+
+### Search home depot
+
+```csharp
+using var results = await client.SearchAsync(new Dictionary<string, string>
+{
+    ["engine"] = "home_depot",
+    ["q"] = "drill"
+});
+```
+
+see: [https://serpapi.com/home-depot-search-api](https://serpapi.com/home-depot-search-api)
+
 ## Examples
 
 See [`examples/`](examples/) for runnable projects:
@@ -519,9 +517,72 @@ cd examples/LeadFinder
 dotnet run
 ```
 
+## Migration quick guide
+
+If you were already using the [google-search-results-dotnet](https://github.com/serpapi/google-search-results-dotnet) package, here are the changes. It's a new package ID — install `serpapi` instead; there's no automatic upgrade path.
+
+```csharp
+// define a search
+// old way: one class per engine (GoogleSearch, BingSearch, BaiduSearch, ...)
+var ht = new Hashtable { { "q", "coffee" } };
+GoogleSearch search = new GoogleSearch(ht, apiKey);
+// new way: one client for every engine, selected via the "engine" parameter
+using var client = new SerpApiClient(apiKey);
+var parameters = new Dictionary<string, string> { ["engine"] = "google", ["q"] = "coffee" };
+
+// search returns JSON
+// old way (synchronous, Newtonsoft JObject)
+JObject data = search.GetJson();
+// new way (async, System.Text.Json based SerpApiResponse)
+using var results = await client.SearchAsync(parameters);
+
+// search returns raw HTML
+// old way
+string html = search.GetHtml();
+// new way
+string html = await client.HtmlAsync(parameters);
+
+// other methods: the Get prefix is removed, Async suffix added
+// old -> new way
+// search.GetSearchArchiveJson(id) -> await client.SearchArchiveAsync(id)
+// search.GetAccount()             -> await client.AccountAsync()
+// search.GetLocation(q, limit)    -> await client.LocationAsync(q, limit)
+
+// timeout
+// old way
+search.setTimeoutSeconds(30);
+// new way (at construction)
+using var client = new SerpApiClient(apiKey, new SerpApiClientOptions { Timeout = TimeSpan.FromSeconds(30) });
+
+// cleanup
+// old way
+search.Close();
+// new way: the client implements IDisposable
+// (and each SerpApiResponse is IDisposable too)
+```
+
+Most notable improvements:
+- Async-first API with `CancellationToken` support (sync wrappers still available).
+- `System.Text.Json` instead of `Newtonsoft.Json` — zero external dependencies on modern .NET.
+- Typed errors: `SerpApiKeyException`, `SerpApiHttpException`, `SerpApiTimeoutException`, `SerpApiException` (was a single `SerpApiSearchException`).
+- Built-in pagination: `NextPageAsync(response)` and `SearchPagesAsync(parameters)` (`IAsyncEnumerable`).
+- Dependency injection via `services.AddSerpApi(...)`.
+
+## Supported .NET versions
+
+| Target framework | Minimum consumer runtime | Notes |
+|---|---|---|
+| `netstandard2.0` | .NET Framework 4.6.1+, .NET Core 2.0+, Mono, Xamarin, UWP | Ships `Microsoft.Bcl.AsyncInterfaces` and `System.Text.Json` as polyfills |
+| `net7.0` | .NET 7 | Out of support upstream, still built and tested |
+| `net8.0` | .NET 8 (LTS) | |
+| `net9.0` | .NET 9 (STS) | |
+| `net10.0` | .NET 10 (LTS) | Used for `dotnet pack` and local dev builds |
+
+CI builds and tests every target framework above on both **Linux** and **Windows**. Building locally requires the [.NET 10 SDK](https://dotnet.microsoft.com/download) (a single SDK at or above the highest TFM can build all lower ones).
+
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/serpapi/serpapi-dotnet. See [Compatibility](#compatibility) for SDK requirements.
+Bug reports and pull requests are welcome on GitHub at https://github.com/serpapi/serpapi-dotnet. See [Supported .NET versions](#supported-net-versions) for SDK requirements.
 
 ```bash
 git clone https://github.com/serpapi/serpapi-dotnet.git
