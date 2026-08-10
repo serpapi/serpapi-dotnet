@@ -3,8 +3,6 @@
 [![NuGet](https://img.shields.io/nuget/v/serpapi)](https://www.nuget.org/packages/serpapi)
 [![Build](https://github.com/serpapi/serpapi-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/serpapi/serpapi-dotnet/actions/workflows/ci.yml)
 
-> **Not yet published.** The `serpapi` package hasn't shipped its first NuGet release — the badge above will go green once v1.0.0 is out. Until then, build from source (see [Contributing](#contributing)) or reference the project directly.
-
 Integrate search data into your AI workflow, RAG / fine-tuning, or .NET application using this official wrapper for [SerpApi](https://serpapi.com).
 
 SerpApi supports Google, Google Maps, Google Shopping, Bing, Baidu, Yandex, Yahoo, DuckDuckGo, eBay, Walmart, YouTube, App Stores, and [more](https://serpapi.com).
