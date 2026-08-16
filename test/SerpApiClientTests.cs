@@ -252,6 +252,31 @@ public class SerpApiClientTests
     }
 
     [Fact]
+    public async Task MarkdownAsync_ReturnsMarkdownString()
+    {
+        var markdown = "# Search results";
+        var handler = new MockHttpHandler((request, _) =>
+        {
+            Assert.Contains("output=md", request.RequestUri!.ToString());
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(markdown)
+            });
+        });
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var result = await client.MarkdownAsync(new Dictionary<string, string>
+        {
+            ["engine"] = "google",
+            ["q"] = "test"
+        });
+
+        Assert.Equal(markdown, result);
+    }
+
+    [Fact]
     public async Task SearchArchiveAsync_BuildsCorrectUrl()
     {
         string? capturedUrl = null;
@@ -588,6 +613,17 @@ public class SerpApiClientTests
     }
 
     [Fact]
+    public async Task MarkdownAsync_ThrowsOnNullParameters()
+    {
+        using var client = new SerpApiClient("key");
+
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+            () => client.MarkdownAsync(null!));
+
+        Assert.Equal("parameters", exception.ParamName);
+    }
+
+    [Fact]
     public void SearchPagesAsync_ThrowsOnNullParameters()
     {
         using var client = new SerpApiClient("key");
@@ -761,6 +797,27 @@ public class SerpApiClientTests
         });
 
         Assert.Contains("</body>", result);
+    }
+
+    [Fact]
+    public void Markdown_SyncWorks()
+    {
+        var handler = new MockHttpHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("# results")
+            }));
+
+        using var client = new SerpApiClient(new HttpClient(handler),
+            new SerpApiClientOptions { ApiKey = "key" });
+
+        var result = client.Markdown(new Dictionary<string, string>
+        {
+            ["engine"] = "google",
+            ["q"] = "test"
+        });
+
+        Assert.Contains("results", result);
     }
 
     [Fact]
