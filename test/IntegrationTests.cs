@@ -361,6 +361,27 @@ public class HtmlIntegrationTest
 }
 
 [Trait("Category", "Integration")]
+public class MarkdownIntegrationTest
+{
+    [SkippableFact]
+    public async Task Google_MarkdownEndpoint_ReturnsMarkdown()
+    {
+        var apiKey = Environment.GetEnvironmentVariable("SERPAPI_KEY");
+        Skip.If(string.IsNullOrEmpty(apiKey), "SERPAPI_KEY not set");
+
+        using var client = new SerpApiClient(apiKey!);
+        var markdown = await client.MarkdownAsync(new Dictionary<string, string>
+        {
+            ["engine"] = "google",
+            ["q"] = "coffee",
+            ["no_cache"] = "true"
+        });
+
+        Assert.True(markdown.Length > 100);
+    }
+}
+
+[Trait("Category", "Integration")]
 public class PaginationNextPageTest
 {
     [SkippableFact]

@@ -85,7 +85,7 @@ public sealed class SerpApiClient : IDisposable
         if (parameters is null)
             throw new ArgumentNullException(nameof(parameters));
 
-        var url = BuildUrl("/search", parameters, outputJson: true);
+        var url = BuildUrl("/search", parameters, outputFormat: "json");
         return await GetResponseAsync(url, cancellationToken).ConfigureAwait(false);
     }
 
@@ -99,7 +99,21 @@ public sealed class SerpApiClient : IDisposable
         if (parameters is null)
             throw new ArgumentNullException(nameof(parameters));
 
-        var url = BuildUrl("/search", parameters, outputJson: false);
+        var url = BuildUrl("/search", parameters, outputFormat: "html");
+        return await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Execute a search and return results rendered as Markdown.
+    /// </summary>
+    public async Task<string> MarkdownAsync(
+        Dictionary<string, string> parameters,
+        CancellationToken cancellationToken = default)
+    {
+        if (parameters is null)
+            throw new ArgumentNullException(nameof(parameters));
+
+        var url = BuildUrl("/search", parameters, outputFormat: "md");
         return await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
     }
 
@@ -115,7 +129,7 @@ public sealed class SerpApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(searchId))
             throw new ArgumentException("searchId must not be empty.", nameof(searchId));
 
-        var url = BuildUrl($"/searches/{Uri.EscapeDataString(searchId)}.json", new Dictionary<string, string>(), outputJson: true);
+        var url = BuildUrl($"/searches/{Uri.EscapeDataString(searchId)}.json", new Dictionary<string, string>(), outputFormat: "json");
         return await GetResponseAsync(url, cancellationToken).ConfigureAwait(false);
     }
 
@@ -124,7 +138,7 @@ public sealed class SerpApiClient : IDisposable
     /// </summary>
     public async Task<SerpApiResponse> AccountAsync(CancellationToken cancellationToken = default)
     {
-        var url = BuildUrl("/account", new Dictionary<string, string>(), outputJson: true);
+        var url = BuildUrl("/account", new Dictionary<string, string>(), outputFormat: "json");
         return await GetResponseAsync(url, cancellationToken).ConfigureAwait(false);
     }
 
@@ -145,7 +159,7 @@ public sealed class SerpApiClient : IDisposable
             ["limit"] = limit.ToString()
         };
 
-        var url = BuildUrl("/locations.json", parameters, outputJson: true, includeOutput: false);
+        var url = BuildUrl("/locations.json", parameters, outputFormat: "json", includeOutput: false);
         var json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
 
         try
@@ -277,6 +291,12 @@ public sealed class SerpApiClient : IDisposable
         => Task.Run(() => HtmlAsync(parameters)).GetAwaiter().GetResult();
 
     /// <summary>
+    /// Get Markdown results synchronously.
+    /// </summary>
+    public string Markdown(Dictionary<string, string> parameters)
+        => Task.Run(() => MarkdownAsync(parameters)).GetAwaiter().GetResult();
+
+    /// <summary>
     /// Get search archive synchronously.
     /// </summary>
     public SerpApiResponse SearchArchive(string searchId)
@@ -299,7 +319,7 @@ public sealed class SerpApiClient : IDisposable
     private string BuildUrl(
         string endpoint,
         Dictionary<string, string> parameters,
-        bool outputJson,
+        string outputFormat,
         bool includeOutput = true)
     {
         var queryParts = new List<string>();
@@ -317,7 +337,7 @@ public sealed class SerpApiClient : IDisposable
 
         // Add output format
         if (includeOutput)
-            queryParts.Add($"output={( outputJson ? "json" : "html" )}");
+            queryParts.Add($"output={outputFormat}");
 
         // Add source identifier
         queryParts.Add($"source={DefaultSource}");

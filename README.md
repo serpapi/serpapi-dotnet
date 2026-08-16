@@ -100,6 +100,9 @@ Console.WriteLine(results["local_results"]);
 
 // search results as a raw HTML string
 string rawHtml = await client.HtmlAsync(parameters);
+
+// search results as token-efficient Markdown, optimized for LLMs and AI agents
+string markdown = await client.MarkdownAsync(parameters);
 ```
 
 → [SerpApi documentation](https://serpapi.com/search-api).
