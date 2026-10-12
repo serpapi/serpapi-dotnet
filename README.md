@@ -30,7 +30,7 @@ dotnet add package serpapi
 
 [NuGet package page](https://www.nuget.org/packages/serpapi)
 
-## Simple Usage
+## Quick start
 
 ```csharp
 using SerpApi;
@@ -57,7 +57,7 @@ Environment variables are a secure, safe, and easy way to manage secrets.
 Set `export SERPAPI_KEY=<secret_serpapi_key>` in your shell.
 .NET accesses these variables via `Environment.GetEnvironmentVariable("SERPAPI_KEY")`.
 
-## Search API advanced usage with Google search engine
+## Advanced usage with Google search engine
 
 This example dives into the available parameters for the Google search engine.
 The list of parameters depends on the chosen search engine.
@@ -107,7 +107,7 @@ string markdown = await client.MarkdownAsync(parameters);
 
 → [SerpApi documentation](https://serpapi.com/search-api).
 
-### Documentations
+### Documentation
 
 - [Full documentation on SerpApi.com](https://serpapi.com)
 - [Library GitHub page](https://github.com/serpapi/serpapi-dotnet)
@@ -177,7 +177,7 @@ catch (SerpApiTimeoutException)   { /* request timed out */ }
 catch (SerpApiException ex)       { /* catch-all */ }
 ```
 
-### Dependency Injection
+### Dependency injection
 
 ```csharp
 builder.Services.AddSerpApi(options =>
@@ -253,9 +253,9 @@ Console.WriteLine(account["plan_id"]);
 
 It prints your account information: plan, searches left, usage this month, and more.
 
-## Basic example per search engine
+## Examples with more search engines
 
-### Search google
+### Search Google
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -280,7 +280,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/google-light-api](https://serpapi.com/google-light-api)
 
-### Search google scholar
+### Search Google Scholar
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -292,7 +292,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/google-scholar-api](https://serpapi.com/google-scholar-api)
 
-### Search google news
+### Search Google News
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -304,7 +304,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/google-news-api](https://serpapi.com/google-news-api)
 
-### Search google maps
+### Search Google Maps
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -317,7 +317,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/google-maps-api](https://serpapi.com/google-maps-api)
 
-### Search google shopping
+### Search Google Shopping
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -329,7 +329,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/google-shopping-api](https://serpapi.com/google-shopping-api)
 
-### Search google jobs
+### Search Google Jobs
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -341,7 +341,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/google-jobs-api](https://serpapi.com/google-jobs-api)
 
-### Search google images
+### Search Google Images
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -353,7 +353,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/images-results](https://serpapi.com/images-results)
 
-### Search google finance
+### Search Google Finance
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -365,7 +365,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/google-finance-api](https://serpapi.com/google-finance-api)
 
-### Search bing
+### Search Bing
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -377,7 +377,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/bing-search-api](https://serpapi.com/bing-search-api)
 
-### Search duckduckgo
+### Search DuckDuckGo
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -389,7 +389,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/duckduckgo-search-api](https://serpapi.com/duckduckgo-search-api)
 
-### Search baidu
+### Search Baidu
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -401,7 +401,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/baidu-search-api](https://serpapi.com/baidu-search-api)
 
-### Search yahoo
+### Search Yahoo
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -413,7 +413,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/yahoo-search-api](https://serpapi.com/yahoo-search-api)
 
-### Search youtube
+### Search YouTube
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -425,7 +425,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/youtube-search-api](https://serpapi.com/youtube-search-api)
 
-### Search walmart
+### Search Walmart
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -437,7 +437,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/walmart-search-api](https://serpapi.com/walmart-search-api)
 
-### Search ebay
+### Search eBay
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -449,7 +449,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/ebay-search-api](https://serpapi.com/ebay-search-api)
 
-### Search amazon
+### Search Amazon
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -461,7 +461,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/amazon-search-api](https://serpapi.com/amazon-search-api)
 
-### Search naver
+### Search Naver
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -473,7 +473,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/naver-search-api](https://serpapi.com/naver-search-api)
 
-### Search apple app store
+### Search Apple App Store
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -485,7 +485,7 @@ using var results = await client.SearchAsync(new Dictionary<string, string>
 
 see: [https://serpapi.com/apple-app-store](https://serpapi.com/apple-app-store)
 
-### Search home depot
+### Search Home Depot
 
 ```csharp
 using var results = await client.SearchAsync(new Dictionary<string, string>
@@ -518,7 +518,7 @@ cd examples/LeadFinder
 dotnet run
 ```
 
-## Migration quick guide
+## Migration guide
 
 If you were already using the [google-search-results-dotnet](https://github.com/serpapi/google-search-results-dotnet) package, here are the changes. It's a new package ID — install `serpapi` instead; there's no automatic upgrade path.
 
